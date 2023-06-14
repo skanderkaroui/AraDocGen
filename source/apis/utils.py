@@ -60,12 +60,16 @@ def generate_pdf(text, n_pages=10, font_size=12, fonttype=font1):
 
 def get_available():
     available_fonts = [
-        "Droid Arabic Naskh",
-        "Roboto",
-        "Noto Naskh Arabic",
-        "Scheherazade",
-        "Amiri",
-        "Lateef",
+        "Andalus",
+        "Simplified Arabic",
+        "Tahoma",
+        "Traditional Arabic",
+        "Decotype Thuluth",
+        "Arabic transparent",
+        "Af-Diwani",
+        "Advertising Bold",
+        "Decotype Naskh",
+        "M-Unicode Sara"
         # Add more commonly used Arabic fonts here
     ]
     font_size_range = [10, 20]  # Example font size range
