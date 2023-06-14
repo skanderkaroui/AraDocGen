@@ -2,11 +2,11 @@ from pathlib import Path
 
 from fastapi import APIRouter, Response
 
-from utils import generate_pdf, get_available
+from source.apis.utils import generate_pdf, get_available
 
 router = APIRouter()
 
-text = Path(r"C:\Users\skand\PycharmProjects\DocGeneratorFastApi\source\models\data.txt").read_text(encoding="utf-8")
+text = Path(r"/source/models/data.txt").read_text(encoding="utf-8")
 
 
 @router.get("/")
