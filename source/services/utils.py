@@ -2,13 +2,12 @@ from io import BytesIO
 import arabic_reshaper
 import fitz
 
-font1 = fitz.Font(fontfile=r"C:\Users\skand\PycharmProjects\DocGeneratorFastApi\source\models\AF_Diwani-Normal-Traditional.ttf")
-font2 = fitz.Font(fontfile=r"C:\Users\skand\PycharmProjects\DocGeneratorFastApi\source\models\andlso.ttf")
+
 img = open(r"C:\Users\skand\PycharmProjects\DocGeneratorFastApi\source\models\image.jpg", "rb").read()
 
 
 
-def generate_pdf(text, n_pages=10, font_size=12, fonttype=font1):
+def generate_pdf(fonttype, text, n_pages=10, font_size=12):
     doc = fitz.open()  # open the document
     for i in range(int(n_pages)):
         page = doc.new_page()
@@ -60,17 +59,17 @@ def generate_pdf(text, n_pages=10, font_size=12, fonttype=font1):
 
 def get_available():
     available_fonts = [
+        "Advertising Bold",
+        "Af-Diwani",
         "Andalus",
+        "Arabic transparent",
+        "Arslan Wessam A",
+        "Decotype Thuluth",
+        "M-Unicode Sara",
+        "Decotype Naskh",
         "Simplified Arabic",
         "Tahoma",
         "Traditional Arabic",
-        "Decotype Thuluth",
-        "Arabic transparent",
-        "Af-Diwani",
-        "Advertising Bold",
-        "Decotype Naskh",
-        "M-Unicode Sara"
-        # Add more commonly used Arabic fonts here
     ]
     font_size_range = [10, 20]  # Example font size range
     return available_fonts, font_size_range
