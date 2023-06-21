@@ -104,7 +104,17 @@ class Aradocgen:
                 content_blocks.append({
                     'type': 'paragraph',
                     'content': text,
-                    'number': counter
+                    'number': counter,
+                    'id': 0,
+                })
+                counter += 1
+
+            if headline_text:
+                content_blocks.append({
+                    'type': 'headline',
+                    'content': headline_text,
+                    'number': counter,
+                    'id': 1,
                 })
                 counter += 1
 
@@ -113,15 +123,8 @@ class Aradocgen:
                     'type': 'image',
                     'src': src,
                     'number': counter,
-                    'caption': caption_text
-                })
-                counter += 1
-
-            if headline_text:
-                content_blocks.append({
-                    'type': 'headline',
-                    'content': headline_text,
-                    'number': counter
+                    'caption': caption_text,
+                    'id': 2
                 })
                 counter += 1
 
