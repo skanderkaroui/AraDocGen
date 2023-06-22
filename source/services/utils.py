@@ -3,8 +3,24 @@ import arabic_reshaper
 from io import BytesIO
 import requests
 import bs4
+from PIL import Image, ImageDraw, ImageFont
 
 img = open(r"C:\Users\skand\PycharmProjects\DocGeneratorFastApi\source\models\image.jpg", "rb").read()
+fonts = \
+    {
+        "Advertising_Bold": r"C:\Users\skand\PycharmProjects\DocGeneratorFastApi\source\models\Arabic Fonts\Advertising_Bold.ttf",
+        "Af_Diwani": r"C:\Users\skand\PycharmProjects\DocGeneratorFastApi\source\models\Arabic Fonts\AF_Diwani.ttf",
+        "Andalus": r"C:\Users\skand\PycharmProjects\DocGeneratorFastApi\source\models\Arabic Fonts\Andalus.ttf",
+        "Arabic_transparent": r"C:\Users\skand\PycharmProjects\DocGeneratorFastApi\source\models\Arabic Fonts\Arabic_transparent.ttf",
+        "Arslan_Wessam_A": r"C:\Users\skand\PycharmProjects\DocGeneratorFastApi\source\models\Arabic Fonts\Arslan_Wessam_A.ttf",
+        "Decotype_Naskh": r"C:\Users\skand\PycharmProjects\DocGeneratorFastApi\source\models\Arabic Fonts\Decotype_Naskh.ttf",
+        "Decotype_Thuluth": r"C:\Users\skand\PycharmProjects\DocGeneratorFastApi\source\models\Arabic Fonts\Decotype_Thuluth.ttf",
+        "M_Unicode_Sara": r"C:\Users\skand\PycharmProjects\DocGeneratorFastApi\source\models\Arabic Fonts\M_Unicode_Sara.ttf",
+        "Decotype_Naskh": r"C:\Users\skand\PycharmProjects\DocGeneratorFastApi\source\models\Arabic Fonts\Sakkal_Majalla.ttf",
+        "Simplified_Arabic": r"C:\Users\skand\PycharmProjects\DocGeneratorFastApi\source\models\Arabic Fonts\Simplified_Arabic.ttf",
+        "Tahoma": r"C:\Users\skand\PycharmProjects\DocGeneratorFastApi\source\models\Arabic Fonts\Tahoma.ttf",
+        "Traditional_Arabic": r"C:\Users\skand\PycharmProjects\DocGeneratorFastApi\source\models\Arabic Fonts\Traditional_Arabic.ttf"
+    }
 class Aradocgen:
     def generate_pdf(self, fonttype, text, n_pages=10, font_size=12):
         doc = fitz.open()  # open the document
@@ -129,3 +145,12 @@ class Aradocgen:
                 counter += 1
 
         return title_text, content_blocks, counter
+
+    def calculate_text_dimension(text, fonttype=fonts.get("Decotype_Naskh"), font_size=12):
+        font = ImageFont.truetype(fonttype, 12)
+        image = Image.new("RGB", (1, 1), "white")  # Create a small blank image
+        draw = ImageDraw.Draw(image)
+        bbox = draw.textbbox((0, 0), text, font=font)
+        width = bbox[2] - bbox[0]
+        height = bbox[3] - bbox[1]
+        return width, height
