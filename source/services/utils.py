@@ -5,57 +5,178 @@ import requests
 import bs4
 from PIL import Image, ImageDraw, ImageFont
 
-img = open(r"C:\Users\skand\PycharmProjects\DocGeneratorFastApi\source\models\image.jpg", "rb").read()
-fonts = \
-    {
-        "Advertising_Bold": r"C:\Users\skand\PycharmProjects\DocGeneratorFastApi\source\models\Arabic Fonts\Advertising_Bold.ttf",
-        "Af_Diwani": r"C:\Users\skand\PycharmProjects\DocGeneratorFastApi\source\models\Arabic Fonts\AF_Diwani.ttf",
-        "Andalus": r"C:\Users\skand\PycharmProjects\DocGeneratorFastApi\source\models\Arabic Fonts\Andalus.ttf",
-        "Arabic_transparent": r"C:\Users\skand\PycharmProjects\DocGeneratorFastApi\source\models\Arabic Fonts\Arabic_transparent.ttf",
-        "Arslan_Wessam_A": r"C:\Users\skand\PycharmProjects\DocGeneratorFastApi\source\models\Arabic Fonts\Arslan_Wessam_A.ttf",
-        "Decotype_Naskh": r"C:\Users\skand\PycharmProjects\DocGeneratorFastApi\source\models\Arabic Fonts\Decotype_Naskh.ttf",
-        "Decotype_Thuluth": r"C:\Users\skand\PycharmProjects\DocGeneratorFastApi\source\models\Arabic Fonts\Decotype_Thuluth.ttf",
-        "M_Unicode_Sara": r"C:\Users\skand\PycharmProjects\DocGeneratorFastApi\source\models\Arabic Fonts\M_Unicode_Sara.ttf",
-        "Decotype_Naskh": r"C:\Users\skand\PycharmProjects\DocGeneratorFastApi\source\models\Arabic Fonts\Sakkal_Majalla.ttf",
-        "Simplified_Arabic": r"C:\Users\skand\PycharmProjects\DocGeneratorFastApi\source\models\Arabic Fonts\Simplified_Arabic.ttf",
-        "Tahoma": r"C:\Users\skand\PycharmProjects\DocGeneratorFastApi\source\models\Arabic Fonts\Tahoma.ttf",
-        "Traditional_Arabic": r"C:\Users\skand\PycharmProjects\DocGeneratorFastApi\source\models\Arabic Fonts\Traditional_Arabic.ttf"
-    }
+from source.models.Arabic_Fonts.fonts import fonts
+import urllib.request
+
+# Open a
+align_param = 2
+
+
 class Aradocgen:
-    def generate_pdf(self, fonttype, text, n_pages=10, font_size=12):
+    def generate_pdf(self, fonttype, url, n_pages=10, font_size=12):
         doc = fitz.open()  # open the document
+        title, content_blocks, n = self.extract_content_from_website(url)
+        index_paragraph = index_header = index_image = 0
+        found = False
         for i in range(int(n_pages)):
             page = doc.new_page()
             page = doc[i]
             # reshape the text to connect the arabic words together
-            text_reshaped = arabic_reshaper.reshape(text)
+            # text_reshaped = arabic_reshaper.reshape(text)
             # initializing the text writer
             text_writer = fitz.TextWriter(page.rect)
-            # first block of text
-            text_writer.fill_textbox(
-                (300, 100, 550, 800),
-                text_reshaped,
-                font=fonttype,
-                fontsize=int(font_size),
-                align=3,
-                right_to_left=True
-            )
+            if i == 0:
+                title
+                text_writer.fill_textbox(
+                    (300, 50, 550, 80),
+                    arabic_reshaper.reshape(title),
+                    font=fonttype,
+                    fontsize=int(font_size) + 5,
+                    align=align_param,
+                    right_to_left=True,
+                )
+            while index_paragraph < len(content_blocks):
+                block = content_blocks[index_paragraph]
+                if block['id'] == 0:
+                    # first block of text
+                    text_writer.fill_textbox(
+                        (300, 100, 550, 200),
+                        arabic_reshaper.reshape(block['content']),
+                        font=fonttype,
+                        fontsize=int(font_size),
+                        align=align_param,
+                        right_to_left=True
+                    )
+                    index_paragraph += 1
+                    break
+                index_paragraph += 1
+            while index_header < len(content_blocks):
+                block = content_blocks[index_header]
+                if block['id'] == 1:
+                    text_writer.fill_textbox(
+                        (300, 200, 550, 220),
+                        arabic_reshaper.reshape(block['content']),
+                        font=fonttype,
+                        fontsize=int(font_size),
+                        align=align_param,
+                        right_to_left=True
+                    )
+                    index_header += 1
+                    break
+                index_header += 1
+            while index_paragraph < len(content_blocks):
+                block = content_blocks[index_paragraph]
+                if block['id'] == 0:
+                    text_writer.fill_textbox(
+                        (300, 220, 550, 340),
+                        arabic_reshaper.reshape(block['content']),
+                        font=fonttype,
+                        fontsize=int(font_size),
+                        align=align_param,
+                        right_to_left=True
+                    )
+                    index_paragraph += 1
+                    break
+                index_paragraph += 1
+            while index_image < len(content_blocks):
+                block = content_blocks[index_image]
+                if block['id'] == 2:
+                    image_url = 'https:' + block['src']
+                    image_data = urllib.request.urlopen(image_url).read()
+                    image = Image.open(BytesIO(image_data))
+                    image_width, image_height = image.size
+                    image_rect = (
+                        390, 350, 490, 500)  # Define the new rectangle coordinates for image placement
+                    page.insert_image(image_rect, stream=image_data, keep_proportion=False)
+                    index_image += 1
+                    break
+                index_image += 1
+            while index_header < len(content_blocks):
+                block = content_blocks[index_header]
+                if block['id'] == 1:
+                    text_writer.fill_textbox(
+                        (300, 505, 550, 520),
+                        arabic_reshaper.reshape(block['content']),
+                        font=fonttype,
+                        fontsize=int(font_size),
+                        align=align_param,
+                        right_to_left=True
+                    )
+                    index_header += 1
+                    break
+                index_header += 1
+            while index_paragraph < len(content_blocks):
+                block = content_blocks[index_paragraph]
+                if block['id'] == 0:
+                    text_writer.fill_textbox(
+                        (300, 520, 550, 800),
+                        arabic_reshaper.reshape(block['content']),
+                        font=fonttype,
+                        fontsize=int(font_size),
+                        align=align_param,
+                        right_to_left=True
+                    )
+                    index_paragraph += 1
+                    break
+                index_paragraph += 1
             # second block of text
-            text_writer.fill_textbox(
-                (30, 100, 280, 350),
-                text_reshaped,
-                font=fonttype,
-                fontsize=int(font_size),
-                align=3,
-                right_to_left=True
-            )
-            page.insert_image(
-                (30, 100, 280, 1085),
-                stream=img,
-            )
+            while index_paragraph < len(content_blocks):
+                block = content_blocks[index_paragraph]
+                if block['id'] == 0:
+                    text_writer.fill_textbox(
+                        (30, 100, 280, 350),
+                        arabic_reshaper.reshape(block['content']),
+                        font=fonttype,
+                        fontsize=int(font_size),
+                        align=align_param,
+                        right_to_left=True
+                    )
+                    index_paragraph += 1
+                    break
+                index_paragraph += 1
 
+            while index_image < len(content_blocks):
+                block = content_blocks[index_image]
+                if block['id'] == 2:
+                    image_url = 'https:' + block['src']
+                    image_data = urllib.request.urlopen(image_url).read()
+                    image = Image.open(BytesIO(image_data))
+                    image_width, image_height = image.size
+                    image_rect = (
+                        100, 350, 200, 500)  # Define the new rectangle coordinates for image placement
+                    page.insert_image(image_rect, stream=image_data, keep_proportion=False)
+                    index_image += 1
+                    break
+                index_image += 1
+            while index_header < len(content_blocks):
+                block = content_blocks[index_header]
+                if block['id'] == 1:
+                    text_writer.fill_textbox(
+                        (30, 505, 280, 520),
+                        arabic_reshaper.reshape(block['content']),
+                        font=fonttype,
+                        fontsize=int(font_size),
+                        align=align_param,
+                        right_to_left=True
+                    )
+                    index_header += 1
+                    break
+                index_header += 1
+            while index_paragraph < len(content_blocks):
+                block = content_blocks[index_paragraph]
+                if block['id'] == 0:
+                    text_writer.fill_textbox(
+                        (30, 520, 280, 800),
+                        arabic_reshaper.reshape(block['content']),
+                        font=fonttype,
+                        fontsize=int(font_size),
+                        align=align_param,
+                        right_to_left=True
+                    )
+                    index_paragraph += 1
+                    break
+                index_paragraph += 1
             text_writer.write_text(page)
-
         out = fitz.open()  # output PDF
 
         # making the pdf non-readable
@@ -68,6 +189,10 @@ class Aradocgen:
         out_buffer = BytesIO()
         out.save(out_buffer)
         out_buffer.seek(0)
+
+        output_path = "output.pdf"
+        doc.save(output_path, garbage=3, deflate=True)
+        doc.close()
 
         return out_buffer
 
@@ -88,7 +213,7 @@ class Aradocgen:
         font_size_range = [10, 20]  # Example font size range
         return available_fonts, font_size_range
 
-    def extract_content_from_website(url):
+    def extract_content_from_website(self, url):
         response = requests.get(url)
         soup = bs4.BeautifulSoup(response.content, 'html.parser')
 
