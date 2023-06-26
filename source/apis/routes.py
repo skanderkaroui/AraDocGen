@@ -22,7 +22,7 @@ async def say_hello(name: str):
 async def generate_document(
         fonttype: str = Query(..., description="Font type"),
         n_pages: int = Query(10, description="Number of pages"),
-        font_size: int = Query(12, description="Font size"),
+        font_size: int = Query(12, description="Font size", gt=10, lt=20),
         url: str = Query(..., description="URL of the Wikipedia article")
 ):
     try:
