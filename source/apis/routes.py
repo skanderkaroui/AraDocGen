@@ -3,6 +3,7 @@ from fitz import Font
 
 from source.models.Arabic_Fonts.fonts import fonts
 from source.services.doc_generation_service import Aradocgen
+from source.exceptions.font_exceptions import validate_font, FontException
 
 router = APIRouter()
 
@@ -24,15 +25,23 @@ async def generate_document(
         font_size: int = Query(12, description="Font size"),
         url: str = Query(..., description="URL of the Wikipedia article")
 ):
-    selected_font = Font(fontfile=fonts.get(fonttype))
-    pdf_buffer = Aradocgen().generate_pdf(selected_font, url, n_pages, font_size)
-    return Response(
-        content=pdf_buffer.getvalue(),
-        media_type="application/pdf",
-        headers={
-            "Content-Disposition": "attachment; filename={ftt}_{fs}_{np}.pdf".format(ftt=fonttype, fs=font_size,
-                                                                                     np=n_pages)},
-    )
+    try:
+        validate_font(fonttype)
+        selected_font = Font(fontfile=fonts.get(fonttype))
+        pdf_buffer = Aradocgen().generate_pdf(selected_font, url, n_pages, font_size)
+        return Response(
+            content=pdf_buffer.getvalue(),
+            media_type="application/pdf",
+            headers={
+                "Content-Disposition": "attachment; filename={ftt}_{fs}_{np}.pdf".format(ftt=fonttype, fs=font_size,
+                                                                                         np=n_pages)},
+        )
+    except FontException as e:
+        return Response(
+            content=str(e),
+            media_type="text/plain",
+            status_code=400
+        )
 
 
 @router.get("/get-available")
