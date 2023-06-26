@@ -2,7 +2,7 @@ from fastapi import APIRouter, Response, Query
 from fitz import Font
 
 from source.models.Arabic_Fonts.fonts import fonts
-from source.services.utils import Aradocgen
+from source.services.doc_generation_service import Aradocgen
 
 router = APIRouter()
 
