@@ -18,11 +18,12 @@ async def say_hello(name: str):
     return {"hello": f"Hello, {name}!"}
 
 
-@router.get("/generate-doc")
+@router.get("/generate-doc",
+            description="Generate a PDF document with the specified font type, number of pages, font size, and Wiki URL.")
 async def generate_document(
         fonttype: str = Query(..., description="Font type"),
         n_pages: int = Query(10, description="Number of pages"),
-        font_size: int = Query(12, description="Font size", gt=10, lt=20),
+        font_size: int = Query(12, description="Font size (greater than 10 and less than 20)", gt=10, lt=20),
         url: str = Query(..., description="URL of the Wikipedia article")
 ):
     try:
@@ -44,12 +45,12 @@ async def generate_document(
         )
 
 
-@router.get("/get-available")
+@router.get("/get-available", description="Get the available font types.")
 async def get_available_types():
     return Aradocgen().get_available()
 
 
-@router.get("/extract-content")
+@router.get("/extract-content", description="Extract content from a given URL.")
 async def extract_content(
         url: str = Query(..., description="URL")
 ):
