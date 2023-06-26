@@ -1,12 +1,8 @@
-from pathlib import Path
-
-import fitz
-
 from fastapi import APIRouter, Response, Query
-
-from source.services.utils import Aradocgen
+from fitz import Font
 
 from source.models.Arabic_Fonts.fonts import fonts
+from source.services.utils import Aradocgen
 
 router = APIRouter()
 
@@ -28,7 +24,7 @@ async def generate_document(
         font_size: int = Query(12, description="Font size"),
         url: str = Query(..., description="URL of the Wikipedia article")
 ):
-    selected_font = fitz.Font(fontfile=fonts.get(fonttype))
+    selected_font = Font(fontfile=fonts.get(fonttype))
     pdf_buffer = Aradocgen().generate_pdf(selected_font, url, n_pages, font_size)
     return Response(
         content=pdf_buffer.getvalue(),
