@@ -1,13 +1,12 @@
 from pathlib import Path
 
 import fitz
+
 from fastapi import APIRouter, Response, Query
 
 from source.services.utils import Aradocgen
 
 router = APIRouter()
-
-text = Path(r"C:\Users\skand\PycharmProjects\DocGeneratorFastApi\source\models\data.txt").read_text(encoding="utf-8")
 
 fonts = \
     {
@@ -25,8 +24,6 @@ fonts = \
         "Traditional_Arabic": r"C:\Users\skand\PycharmProjects\DocGeneratorFastApi\source\models\Arabic Fonts\Traditional_Arabic.ttf"
     }
 
-aradocgen = Aradocgen()
-
 
 @router.get("/")
 async def root():
@@ -43,16 +40,26 @@ async def generate_document(
         fonttype: str = Query(..., description="Font type"),
         n_pages: int = Query(10, description="Number of pages"),
         font_size: int = Query(12, description="Font size"),
+        url: str = Query(..., description="URL of the wikipedia article")
 ):
     selected_font = fitz.Font(fontfile=fonts.get(fonttype))
-    pdf_buffer = aradocgen.generate_pdf(selected_font, text, n_pages, font_size)
+    pdf_buffer = Aradocgen().generate_pdf(selected_font, url, n_pages, font_size)
     return Response(
         content=pdf_buffer.getvalue(),
         media_type="application/pdf",
-        headers={"Content-Disposition": "attachment; filename=generated_doc.pdf"},
+        headers={
+            "Content-Disposition": "attachment; filename={ftt}_{fs}_{np}.pdf".format(ftt=fonttype, fs=font_size,
+                                                                                     np=n_pages)},
     )
 
 
 @router.get("/get-available")
 async def get_available_types():
-    return aradocgen.get_available()
+    return Aradocgen().get_available()
+
+
+@router.get("/extract-content")
+async def extract_content(
+        url: str = Query(..., description="URL")
+):
+    return Aradocgen().extract_content_from_website(url)
