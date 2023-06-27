@@ -54,10 +54,10 @@ class Aradocgen:
                 block = content_blocks[index_header]
                 if block['id'] == 1:
                     text_writer.fill_textbox(
-                        (300, 200, 550, 220),
+                        (300, 220, 550, 240),
                         arabic_reshaper.reshape(block['content']),
                         font=fonttype,
-                        fontsize=int(font_size),
+                        fontsize=int(font_size)+2,
                         align=align_param,
                         right_to_left=True
                     )
@@ -68,7 +68,7 @@ class Aradocgen:
                 block = content_blocks[index_paragraph]
                 if block['id'] == 0:
                     text_writer.fill_textbox(
-                        (300, 220, 550, 340),
+                        (300, 245, 550, 345),
                         arabic_reshaper.reshape(block['content']),
                         font=fonttype,
                         fontsize=int(font_size),
@@ -86,7 +86,7 @@ class Aradocgen:
                     image = Image.open(BytesIO(image_data))
                     image_width, image_height = image.size
                     image_rect = (
-                        390, 350, 490, 500)  # Define the new rectangle coordinates for image placement
+                        390, 355, 490, 505)  # Define the new rectangle coordinates for image placement
                     page.insert_image(image_rect, stream=image_data, keep_proportion=False)
                     index_image += 1
                     break
@@ -95,10 +95,10 @@ class Aradocgen:
                 block = content_blocks[index_header]
                 if block['id'] == 1:
                     text_writer.fill_textbox(
-                        (300, 505, 550, 520),
+                        (300, 515, 550, 535),
                         arabic_reshaper.reshape(block['content']),
                         font=fonttype,
-                        fontsize=int(font_size),
+                        fontsize=int(font_size)+2,
                         align=align_param,
                         right_to_left=True
                     )
@@ -109,7 +109,7 @@ class Aradocgen:
                 block = content_blocks[index_paragraph]
                 if block['id'] == 0:
                     text_writer.fill_textbox(
-                        (300, 520, 550, 800),
+                        (300, 540, 550, 640),
                         arabic_reshaper.reshape(block['content']),
                         font=fonttype,
                         fontsize=int(font_size),
@@ -119,12 +119,41 @@ class Aradocgen:
                     index_paragraph += 1
                     break
                 index_paragraph += 1
+            while index_paragraph < len(content_blocks):
+                block = content_blocks[index_paragraph]
+                if block['id'] == 0:
+                    text_writer.fill_textbox(
+                        (300, 660, 550, 800),
+                        arabic_reshaper.reshape(block['content']),
+                        font=fonttype,
+                        fontsize=int(font_size),
+                        align=align_param,
+                        right_to_left=True,
+                    )
+                    index_paragraph += 1
+                    break
+                index_paragraph += 1
             # second block of text
             while index_paragraph < len(content_blocks):
                 block = content_blocks[index_paragraph]
                 if block['id'] == 0:
                     text_writer.fill_textbox(
-                        (30, 100, 280, 350),
+                        (30, 100, 280, 235),
+                        arabic_reshaper.reshape(block['content']),
+                        font=fonttype,
+                        fontsize=int(font_size),
+                        align=align_param,
+                        right_to_left=True
+                    )
+                    index_paragraph += 1
+                    break
+                index_paragraph += 1
+
+            while index_paragraph < len(content_blocks):
+                block = content_blocks[index_paragraph]
+                if block['id'] == 0:
+                    text_writer.fill_textbox(
+                        (30, 245, 280, 360),
                         arabic_reshaper.reshape(block['content']),
                         font=fonttype,
                         fontsize=int(font_size),
@@ -143,7 +172,7 @@ class Aradocgen:
                     image = Image.open(BytesIO(image_data))
                     image_width, image_height = image.size
                     image_rect = (
-                        100, 350, 200, 500)  # Define the new rectangle coordinates for image placement
+                        100, 365, 200, 500)  # Define the new rectangle coordinates for image placement
                     page.insert_image(image_rect, stream=image_data, keep_proportion=False)
                     index_image += 1
                     break
@@ -152,10 +181,10 @@ class Aradocgen:
                 block = content_blocks[index_header]
                 if block['id'] == 1:
                     text_writer.fill_textbox(
-                        (30, 505, 280, 520),
+                        (30, 515, 280, 535),
                         arabic_reshaper.reshape(block['content']),
                         font=fonttype,
-                        fontsize=int(font_size),
+                        fontsize=int(font_size)+2,
                         align=align_param,
                         right_to_left=True
                     )
@@ -166,7 +195,21 @@ class Aradocgen:
                 block = content_blocks[index_paragraph]
                 if block['id'] == 0:
                     text_writer.fill_textbox(
-                        (30, 520, 280, 800),
+                        (30, 540, 280, 650),
+                        arabic_reshaper.reshape(block['content']),
+                        font=fonttype,
+                        fontsize=int(font_size),
+                        align=align_param,
+                        right_to_left=True
+                    )
+                    index_paragraph += 1
+                    break
+                index_paragraph += 1
+            while index_paragraph < len(content_blocks):
+                block = content_blocks[index_paragraph]
+                if block['id'] == 0:
+                    text_writer.fill_textbox(
+                        (30, 660, 280, 800),
                         arabic_reshaper.reshape(block['content']),
                         font=fonttype,
                         fontsize=int(font_size),
