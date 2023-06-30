@@ -4,6 +4,7 @@ from io import BytesIO
 import requests
 import bs4
 from PIL import Image, ImageDraw, ImageFont
+import re
 
 from source.models.Arabic_Fonts.fonts import fonts
 import urllib.request
@@ -28,10 +29,10 @@ class Aradocgen:
             if i == 0:
                 title
                 text_writer.fill_textbox(
-                    (300, 50, 550, 80),
+                    (300, 60, 545, 90),
                     arabic_reshaper.reshape(title),
                     font=fonttype,
-                    fontsize=int(font_size) + 5,
+                    fontsize=int(font_size) + 10,
                     align=align_param,
                     right_to_left=True,
                 )
@@ -283,6 +284,7 @@ class Aradocgen:
             src = image_tag['src']
             caption_text = caption.get_text()
             headline_text = headline.get_text()
+            text = re.sub(r'[^\u0600-\u06FF\s]', '', text).strip()
 
             if text:
                 content_blocks.append({
