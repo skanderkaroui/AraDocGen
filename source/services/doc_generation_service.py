@@ -1,13 +1,14 @@
-import fitz
-import arabic_reshaper
-from io import BytesIO
-import requests
-import bs4
-from PIL import Image, ImageDraw, ImageFont
 import re
+import urllib.request
+from io import BytesIO
+
+import arabic_reshaper
+import bs4
+import fitz
+import requests
+from PIL import Image, ImageDraw, ImageFont
 
 from source.models.Arabic_Fonts.fonts import fonts
-import urllib.request
 
 # Open a
 align_param = 2
@@ -17,7 +18,7 @@ class Aradocgen:
     def generate_pdf(self, fonttype, url, n_pages=10, font_size=12):
         doc = fitz.open()  # open the document
         title, content_blocks, n = self.extract_content_from_website(url)
-        self.layout2(n_pages, doc, title, fonttype, font_size, content_blocks)
+        self.layout1(n_pages, doc, title, fonttype, font_size, content_blocks, n)
         out = fitz.open()  # output PDF
 
         # making the pdf non-readable
@@ -68,6 +69,7 @@ class Aradocgen:
         # Extract paragraphs, images, captions, and headlines
         content_blocks = []
         counter = 1
+        counter_image = counter_text = counter_headline = 1
         paragraph_tags = soup.find_all('p')
         image_tags = soup.find_all('img', class_='thumbimage')
         image_captions = soup.find_all('div', class_='thumbcaption')
@@ -87,18 +89,22 @@ class Aradocgen:
                     'type': 'paragraph',
                     'content': text,
                     'number': counter,
+                    'number_text': counter_text,
                     'id': 0,
                 })
                 counter += 1
+                counter_text += 1
 
             if headline_text:
                 content_blocks.append({
                     'type': 'headline',
                     'content': headline_text,
                     'number': counter,
+                    'number_headline': counter_headline,
                     'id': 1,
                 })
                 counter += 1
+                counter_headline += 1
 
             if src:
                 content_blocks.append({
@@ -106,11 +112,13 @@ class Aradocgen:
                     'src': src,
                     'number': counter,
                     'caption': caption_text,
+                    'number_image': counter_image,
                     'id': 2
                 })
                 counter += 1
+                counter_image += 1
 
-        return title_text, content_blocks, counter
+        return title_text, content_blocks, counter_text
 
     def calculate_text_dimension(text, fonttype=fonts.get("Decotype_Naskh"), font_size=12):
         font = ImageFont.truetype(fonttype, 12)
@@ -121,11 +129,11 @@ class Aradocgen:
         height = bbox[3] - bbox[1]
         return width, height
 
-    def layout1(self, n_pages, doc, title, fonttype, font_size, content_blocks):
+    def layout1(self, n_pages, doc, title, fonttype, font_size, content_blocks, n):
         index_paragraph = index_header = index_image = 0
         found = False
         i = 0
-        while (i < (int(n_pages))) and (index_paragraph < len(content_blocks)):
+        while (i < (int(n_pages))) and (8*(i+1) < n):
             page = doc.new_page()
             page = doc[i]
             # reshape the text to connect the arabic words together
@@ -134,10 +142,10 @@ class Aradocgen:
             text_writer = fitz.TextWriter(page.rect)
             if i == 0:
                 text_writer.fill_textbox(
-                    (300, 60, 545, 90),
+                    (150, 25, 450, 65),
                     arabic_reshaper.reshape(title),
                     font=fonttype,
-                    fontsize=int(font_size) + 10,
+                    fontsize=int(font_size) + 30,
                     align=align_param,
                     right_to_left=True,
                 )
@@ -328,11 +336,11 @@ class Aradocgen:
             text_writer.write_text(page)
             i += 1
 
-    def layout2(self, n_pages, doc, title, fonttype, font_size, content_blocks):
+    def layout2(self, n_pages, doc, title, fonttype, font_size, content_blocks, n):
         index_paragraph = index_header = index_image = 0
         found = False
         i = 0
-        while (i < (int(n_pages))) and (index_paragraph < len(content_blocks)):
+        while (i < (int(n_pages))) and (11*(i+1) < n):
             page = doc.new_page()
             page = doc[i]
             # reshape the text to connect the arabic words together
@@ -341,7 +349,7 @@ class Aradocgen:
             text_writer = fitz.TextWriter(page.rect)
             if i == 0:
                 text_writer.fill_textbox(
-                    (200, 25, 400, 65),
+                    (150, 25, 450, 65),
                     arabic_reshaper.reshape(title),
                     font=fonttype,
                     fontsize=int(font_size) + 30,
