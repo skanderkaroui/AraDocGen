@@ -2,6 +2,8 @@ import re
 import urllib.request
 from io import BytesIO
 
+import itertools
+
 import arabic_reshaper
 import bs4
 import fitz
@@ -75,13 +77,13 @@ class Aradocgen:
         image_captions = soup.find_all('div', class_='thumbcaption')
         mw_headlines = soup.find_all('span', class_='mw-headline')
 
-        for paragraph_tag, image_tag, caption, headline in zip(paragraph_tags, image_tags, image_captions,
+        for paragraph_tag, image_tag, caption, headline in itertools.zip_longest(paragraph_tags, image_tags, image_captions,
                                                                mw_headlines):
 
-            text = paragraph_tag.get_text().strip()
-            src = image_tag['src']
-            caption_text = caption.get_text()
-            headline_text = headline.get_text()
+            text = paragraph_tag.get_text().strip() if paragraph_tag else ""
+            src = image_tag['src'] if image_tag is not None else ""
+            caption_text = caption.get_text() if caption else ""
+            headline_text = headline.get_text() if headline else ""
             text = re.sub(r'[^\u0600-\u06FF\s]', '', text).strip()
 
             if text:
