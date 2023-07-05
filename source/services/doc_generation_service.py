@@ -20,7 +20,7 @@ class Aradocgen:
     def generate_pdf(self, fonttype, url, n_pages=10, font_size=12):
         doc = fitz.open()  # open the document
         title, content_blocks, n = self.extract_content_from_website(url)
-        self.layout1(n_pages, doc, title, fonttype, font_size, content_blocks, n)
+        self.layout3(n_pages, doc, title, fonttype, font_size, content_blocks, n)
         out = fitz.open()  # output PDF
 
         # making the pdf non-readable
@@ -77,8 +77,9 @@ class Aradocgen:
         image_captions = soup.find_all('div', class_='thumbcaption')
         mw_headlines = soup.find_all('span', class_='mw-headline')
 
-        for paragraph_tag, image_tag, caption, headline in itertools.zip_longest(paragraph_tags, image_tags, image_captions,
-                                                               mw_headlines):
+        for paragraph_tag, image_tag, caption, headline in itertools.zip_longest(paragraph_tags, image_tags,
+                                                                                 image_captions,
+                                                                                 mw_headlines):
 
             text = paragraph_tag.get_text().strip() if paragraph_tag else ""
             src = image_tag['src'] if image_tag is not None else ""
@@ -135,7 +136,9 @@ class Aradocgen:
         index_paragraph = index_header = index_image = 0
         found = False
         i = 0
-        while (i < (int(n_pages))) and (8*(i+1) < n):
+        if n <= 8:
+            n_pages = 1
+        while (i < int(n_pages)) and ((8 * (i + 1) < n) if n > 8 else True):
             page = doc.new_page()
             page = doc[i]
             # reshape the text to connect the arabic words together
@@ -148,7 +151,7 @@ class Aradocgen:
                     arabic_reshaper.reshape(title),
                     font=fonttype,
                     fontsize=int(font_size) + 30,
-                    align=align_param,
+                    align=1,
                     right_to_left=True,
                 )
             while index_paragraph < len(content_blocks):
@@ -342,7 +345,9 @@ class Aradocgen:
         index_paragraph = index_header = index_image = 0
         found = False
         i = 0
-        while (i < (int(n_pages))) and (11*(i+1) < n):
+        if n <= 11:
+            n_pages = 1
+        while (i < int(n_pages)) and ((11 * (i + 1) < n) if n > 11 else True):
             page = doc.new_page()
             page = doc[i]
             # reshape the text to connect the arabic words together
@@ -657,5 +662,281 @@ class Aradocgen:
                     break
                 index_paragraph += 1
 
+            text_writer.write_text(page)
+            i += 1
+
+    def layout3(self, n_pages, doc, title, fonttype, font_size, content_blocks, n):
+        index_paragraph = index_header = index_image = 0
+        found = False
+        i = 0
+        if n <= 8:
+            n_pages = 1
+        while (i < int(n_pages)) and ((8 * (i + 1) < n) if n > 8 else True):
+            page = doc.new_page()
+            page = doc[i]
+            # reshape the text to connect the arabic words together
+            # text_reshaped = arabic_reshaper.reshape(text)
+            # initializing the text writer
+            text_writer = fitz.TextWriter(page.rect)
+            if i == 0:
+                text_writer.fill_textbox(
+                    (150, 25, 450, 65),
+                    arabic_reshaper.reshape(title),
+                    font=fonttype,
+                    fontsize=int(font_size) + 30,
+                    align=1,
+                    right_to_left=True,
+                )
+            # first block of text
+            while index_header < len(content_blocks):
+                block = content_blocks[index_header]
+                if block['id'] == 1:
+                    text_writer.fill_textbox(
+                        (200, 100, 550, 120),
+                        arabic_reshaper.reshape(block['content']),
+                        font=fonttype,
+                        fontsize=int(font_size) + 2,
+                        align=align_param,
+                        right_to_left=True
+                    )
+                    index_header += 1
+                    break
+                index_header += 1
+            while index_paragraph < len(content_blocks):
+                block = content_blocks[index_paragraph]
+                if block['id'] == 0:
+                    text_writer.fill_textbox(
+                        (200, 125, 550, 225),
+                        arabic_reshaper.reshape(block['content']),
+                        font=fonttype,
+                        fontsize=int(font_size),
+                        align=align_param,
+                        right_to_left=True
+                    )
+                    index_paragraph += 1
+                    break
+                index_paragraph += 1
+            while index_header < len(content_blocks):
+                block = content_blocks[index_header]
+                if block['id'] == 1:
+                    text_writer.fill_textbox(
+                        (200, 230, 550, 250),
+                        arabic_reshaper.reshape(block['content']),
+                        font=fonttype,
+                        fontsize=int(font_size) + 2,
+                        align=align_param,
+                        right_to_left=True
+                    )
+                    index_header += 1
+                    break
+                index_header += 1
+            while index_paragraph < len(content_blocks):
+                block = content_blocks[index_paragraph]
+                if block['id'] == 0:
+                    text_writer.fill_textbox(
+                        (200, 255, 550, 355),
+                        arabic_reshaper.reshape(block['content']),
+                        font=fonttype,
+                        fontsize=int(font_size),
+                        align=align_param,
+                        right_to_left=True
+                    )
+                    index_paragraph += 1
+                    break
+                index_paragraph += 1
+            while index_image < len(content_blocks):
+                block = content_blocks[index_image]
+                if block['id'] == 2:
+                    image_url = 'https:' + block['src']
+                    image_data = urllib.request.urlopen(image_url).read()
+                    image = Image.open(BytesIO(image_data))
+                    image_width, image_height = image.size
+                    image_rect = (
+                        450, 360, 550, 500)  # Define the new rectangle coordinates for image placement
+                    page.insert_image(image_rect, stream=image_data, keep_proportion=False)
+                    index_image += 1
+                    break
+                index_image += 1
+            while index_image < len(content_blocks):
+                block = content_blocks[index_image]
+                if block['id'] == 2:
+                    image_url = 'https:' + block['src']
+                    image_data = urllib.request.urlopen(image_url).read()
+                    image = Image.open(BytesIO(image_data))
+                    image_width, image_height = image.size
+                    image_rect = (
+                        340, 360, 440, 500)  # Define the new rectangle coordinates for image placement
+                    page.insert_image(image_rect, stream=image_data, keep_proportion=False)
+                    index_image += 1
+                    break
+                index_image += 1
+            while index_image < len(content_blocks):
+                block = content_blocks[index_image]
+                if block['id'] == 2:
+                    image_url = 'https:' + block['src']
+                    image_data = urllib.request.urlopen(image_url).read()
+                    image = Image.open(BytesIO(image_data))
+                    image_width, image_height = image.size
+                    image_rect = (
+                        230, 360, 330, 500)  # Define the new rectangle coordinates for image placement
+                    page.insert_image(image_rect, stream=image_data, keep_proportion=False)
+                    index_image += 1
+                    break
+                index_image += 1
+            while index_header < len(content_blocks):
+                block = content_blocks[index_header]
+                if block['id'] == 1:
+                    text_writer.fill_textbox(
+                        (200, 505, 550, 525),
+                        arabic_reshaper.reshape(block['content']),
+                        font=fonttype,
+                        fontsize=int(font_size) + 2,
+                        align=align_param,
+                        right_to_left=True
+                    )
+                    index_header += 1
+                    break
+                index_header += 1
+            while index_paragraph < len(content_blocks):
+                block = content_blocks[index_paragraph]
+                if block['id'] == 0:
+                    text_writer.fill_textbox(
+                        (375, 530, 550, 800),
+                        arabic_reshaper.reshape(block['content']),
+                        font=fonttype,
+                        fontsize=int(font_size),
+                        align=align_param,
+                        right_to_left=True
+                    )
+                    index_paragraph += 1
+                    break
+                index_paragraph += 1
+            while index_header < len(content_blocks):
+                block = content_blocks[index_header]
+                if block['id'] == 1:
+                    text_writer.fill_textbox(
+                        (200, 505, 370, 525),
+                        arabic_reshaper.reshape(block['content']),
+                        font=fonttype,
+                        fontsize=int(font_size) + 2,
+                        align=align_param,
+                        right_to_left=True
+                    )
+                    index_header += 1
+                    break
+                index_header += 1
+            while index_paragraph < len(content_blocks):
+                block = content_blocks[index_paragraph]
+                if block['id'] == 0:
+                    text_writer.fill_textbox(
+                        (200, 530, 370, 800),
+                        arabic_reshaper.reshape(block['content']),
+                        font=fonttype,
+                        fontsize=int(font_size),
+                        align=align_param,
+                        right_to_left=True
+                    )
+                    index_paragraph += 1
+                    break
+                index_paragraph += 1
+            # second block of text
+            while index_header < len(content_blocks):
+                block = content_blocks[index_header]
+                if block['id'] == 1:
+                    text_writer.fill_textbox(
+                        (30, 100, 190, 120),
+                        arabic_reshaper.reshape(block['content']),
+                        font=fonttype,
+                        fontsize=int(font_size) + 2,
+                        align=align_param,
+                        right_to_left=True
+                    )
+                    index_header += 1
+                    break
+                index_header += 1
+            while index_paragraph < len(content_blocks):
+                block = content_blocks[index_paragraph]
+                if block['id'] == 0:
+                    text_writer.fill_textbox(
+                        (30, 125, 190, 300),
+                        arabic_reshaper.reshape(block['content']),
+                        font=fonttype,
+                        fontsize=int(font_size),
+                        align=align_param,
+                        right_to_left=True
+                    )
+                    index_paragraph += 1
+                    break
+                index_paragraph += 1
+            while index_header < len(content_blocks):
+                block = content_blocks[index_header]
+                if block['id'] == 1:
+                    text_writer.fill_textbox(
+                        (30, 310, 190, 330),
+                        arabic_reshaper.reshape(block['content']),
+                        font=fonttype,
+                        fontsize=int(font_size) + 2,
+                        align=align_param,
+                        right_to_left=True
+                    )
+                    index_header += 1
+                    break
+                index_header += 1
+            while index_paragraph < len(content_blocks):
+                block = content_blocks[index_paragraph]
+                if block['id'] == 0:
+                    text_writer.fill_textbox(
+                        (30, 335, 190, 435),
+                        arabic_reshaper.reshape(block['content']),
+                        font=fonttype,
+                        fontsize=int(font_size),
+                        align=align_param,
+                        right_to_left=True
+                    )
+                    index_paragraph += 1
+                    break
+                index_paragraph += 1
+            while index_paragraph < len(content_blocks):
+                block = content_blocks[index_paragraph]
+                if block['id'] == 0:
+                    text_writer.fill_textbox(
+                        (30, 440, 190, 535),
+                        arabic_reshaper.reshape(block['content']),
+                        font=fonttype,
+                        fontsize=int(font_size),
+                        align=align_param,
+                        right_to_left=True
+                    )
+                    index_paragraph += 1
+                    break
+                index_paragraph += 1
+            while index_header < len(content_blocks):
+                block = content_blocks[index_header]
+                if block['id'] == 1:
+                    text_writer.fill_textbox(
+                        (30, 540, 190, 550),
+                        arabic_reshaper.reshape(block['content']),
+                        font=fonttype,
+                        fontsize=int(font_size) + 2,
+                        align=align_param,
+                        right_to_left=True
+                    )
+                    index_header += 1
+                    break
+                index_header += 1
+            while index_paragraph < len(content_blocks):
+                block = content_blocks[index_paragraph]
+                if block['id'] == 0:
+                    text_writer.fill_textbox(
+                        (30, 555, 190, 800),
+                        arabic_reshaper.reshape(block['content']),
+                        font=fonttype,
+                        fontsize=int(font_size),
+                        align=align_param,
+                        right_to_left=True
+                    )
+                    index_paragraph += 1
+                    break
+                index_paragraph += 1
             text_writer.write_text(page)
             i += 1
