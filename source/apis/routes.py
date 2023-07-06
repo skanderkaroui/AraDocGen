@@ -1,42 +1,39 @@
 from fastapi import APIRouter, Response, Query
 from fitz import Font
 
-from source.models.Arabic_Fonts.fonts import fonts
-from source.services.doc_generation_service import Aradocgen
 from source.exceptions.font_exceptions import validate_font, FontException
+from source.models.Arabic_Fonts.fonts import fonts, FontEnum
+from source.services.doc_generation_service import Aradocgen
 
 router = APIRouter()
 
 
-@router.get("/")
-async def root():
-    return {"message": "Hello World"}
 
-
-@router.get("/hello/{name}")
-async def say_hello(name: str):
-    return {"hello": f"Hello, {name}!"}
-
-
-@router.get("/generate-doc",
-            description="Generate a PDF document with the specified font type, number of pages, font size, and Wiki URL.")
+@router.post("/generate-doc",
+             description="Generate a PDF document with the specified font type, number of pages, font size, and Wiki URL.")
 async def generate_document(
-        fonttype: str = Query(..., description="Font type"),
+        font_type: FontEnum = Query(..., description="Font type"),
         n_pages: int = Query(10, description="Number of pages"),
         font_size: int = Query(12, description="Font size (greater than 10 and less than 20)", gt=10, lt=20),
         url: str = Query(..., description="URL of the Wikipedia article")
 ):
     try:
-        validate_font(fonttype)
-        selected_font = Font(fontfile=fonts.get(fonttype))
+        selected_font = Font(fontfile=fonts.get(font_type.name))
+    except KeyError as e:
+        return Response(
+            content=str(e),
+            media_type="text/plain",
+            status_code=400
+        )
+    try:
         pdf_buffer = Aradocgen().generate_pdf(selected_font, url, n_pages, font_size)
         return Response(
             content=pdf_buffer.getvalue(),
             media_type="application/pdf",
             headers={
-                "Content-Disposition": "attachment; filename={ftt}_{fs}_{np}.pdf".format(ftt=fonttype, fs=font_size,
-                                                                                         np=n_pages)},
+                "Content-Disposition": f"attachment; filename={font_type.name}_{font_size}_{n_pages}.pdf"},
         )
+    #fstring
     except FontException as e:
         return Response(
             content=str(e),
