@@ -4,9 +4,8 @@ from fitz import Font
 from source.exceptions.font_exceptions import validate_font, FontException
 from source.models.Arabic_Fonts.fonts import fonts, FontEnum
 from source.services.doc_generation_service import Aradocgen
-
+from source.services.layouts import LayoutEnum
 router = APIRouter()
-
 
 
 @router.post("/generate-doc",
@@ -15,10 +14,12 @@ async def generate_document(
         font_type: FontEnum = Query(..., description="Font type"),
         n_pages: int = Query(10, description="Number of pages"),
         font_size: int = Query(12, description="Font size (greater than 10 and less than 20)", gt=10, lt=20),
-        url: str = Query(..., description="URL of the Wikipedia article")
+        url: str = Query(..., description="URL of the Wikipedia article"),
+        layout_number: LayoutEnum = Query(..., description="Choose the layout you want"),
 ):
     try:
         selected_font = Font(fontfile=fonts.get(font_type.name))
+        selected_layout = layout_number.name
     except KeyError as e:
         return Response(
             content=str(e),
@@ -26,14 +27,14 @@ async def generate_document(
             status_code=400
         )
     try:
-        pdf_buffer = Aradocgen().generate_pdf(selected_font, url, n_pages, font_size)
+        pdf_buffer = Aradocgen().generate_pdf(selected_font, url, selected_layout, n_pages, font_size)
         return Response(
             content=pdf_buffer.getvalue(),
             media_type="application/pdf",
             headers={
                 "Content-Disposition": f"attachment; filename={font_type.name}_{font_size}_{n_pages}.pdf"},
         )
-    #fstring
+    # fstring
     except FontException as e:
         return Response(
             content=str(e),

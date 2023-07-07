@@ -9,18 +9,24 @@ import bs4
 import fitz
 import requests
 from PIL import Image, ImageDraw, ImageFont
-
+from source.services.layouts import layout, LayoutEnum
 from source.models.Arabic_Fonts.fonts import fonts
 
-# Open a
 align_param = 2
 
 
 class Aradocgen:
-    def generate_pdf(self, fonttype, url, n_pages=10, font_size=12):
+    def generate_pdf(self, fonttype, url, layout_number, n_pages=10, font_size=12):
         doc = fitz.open()  # open the document
         title, content_blocks, n = self.extract_content_from_website(url)
-        self.layout5(n_pages, doc, title, fonttype, font_size, content_blocks, n)
+        layout_key = LayoutEnum(layout_number)
+
+        if layout_key in layout:
+            layout_function = layout[layout_key]
+            layout_function(n_pages, doc, title, fonttype, font_size, content_blocks, n)
+        else:
+            raise ValueError(f"Invalid layout number: {layout_number}")
+        # self.layout5(n_pages, doc, title, fonttype, font_size, content_blocks, n)
         out = fitz.open()  # output PDF
 
         # making the pdf non-readable
@@ -1357,7 +1363,7 @@ class Aradocgen:
                     index_paragraph += 1
                     break
                 index_paragraph += 1
-            #block 2
+            # block 2
             while index_image < len(content_blocks):
                 block = content_blocks[index_image]
                 if block['id'] == 2:
