@@ -1,32 +1,78 @@
+import itertools
+import logging
 import re
 import urllib.request
 from io import BytesIO
-
-import itertools
 
 import arabic_reshaper
 import bs4
 import fitz
 import requests
 from PIL import Image, ImageDraw, ImageFont
-from source.services.layouts import layout, LayoutEnum
-from source.models.Arabic_Fonts.fonts import fonts
 
+from source.exceptions.page_exceptions import PageException
+from source.models.Arabic_Fonts.fonts import fonts
+from source.services.layouts import layout, LayoutEnum
+logging.basicConfig(level=logging.INFO)
 align_param = 2
 
 
 class Aradocgen:
     def generate_pdf(self, fonttype, url, layout_number, n_pages=10, font_size=12):
         doc = fitz.open()  # open the document
-        title, content_blocks, n = self.extract_content_from_website(url)
+        title, content_blocks, n_paragraphs = self.extract_content_from_website(url)
         layout_key = LayoutEnum(layout_number)
+        layout_key_string = layout_key.name
+
+        if layout_key_string == "layout1":
+            try:
+                if n_paragraphs < 8:
+                    raise PageException("number of pages very low", 505)
+            except KeyError:
+                raise PageException("number of pages very low")
+
+        elif layout_key_string == "layout1":
+            try:
+                if n_paragraphs < 8:
+                    raise PageException("number of pages very low", 505)
+            except KeyError:
+                raise PageException("number of pages very low")
+
+        if layout_key_string == "layout2":
+            try:
+                if n_paragraphs < 11:
+                    raise PageException("number of pages very low", 505)
+            except KeyError:
+                raise PageException("number of pages very low")
+
+        if layout_key_string == "layout3":
+            try:
+                if n_paragraphs < 7:
+                    raise PageException("number of pages very low", 505)
+            except KeyError:
+                raise PageException("number of pages very low")
+
+        if layout_key_string == "layout4":
+            try:
+                if n_paragraphs < 10:
+                    raise PageException("number of pages very low", 505)
+            except KeyError:
+                raise PageException("number of pages very low")
+
+        if layout_key_string == "layout5":
+            try:
+                if n_paragraphs < 10:
+                    raise PageException("number of pages very low", 505)
+            except KeyError:
+                raise PageException("number of pages very low")
 
         if layout_key in layout:
             layout_function = layout[layout_key]
-            layout_function(n_pages, doc, title, fonttype, font_size, content_blocks, n)
+            layout_function(n_pages, doc, title, fonttype, font_size, content_blocks, n_paragraphs)
         else:
             raise ValueError(f"Invalid layout number: {layout_number}")
-        # self.layout5(n_pages, doc, title, fonttype, font_size, content_blocks, n)
+
+
         out = fitz.open()  # output PDF
 
         # making the pdf non-readable
@@ -139,17 +185,21 @@ class Aradocgen:
         return width, height
 
     def layout1(self, n_pages, doc, title, fonttype, font_size, content_blocks, n_paragraphs):
-        """"""
+        """ Returns layout number 1
+
+        Args:
+            n_pages: (number) the number of pages
+            doc: the doc that the file is writing on
+            title: the title of the document
+            font_size: pretty self-explanatory
+            content_blocks: (list) returning the content of the wiki article
+            n_paragraphs: (number) number of paragraphs in the file
+        """
         index_paragraph = index_header = index_image = 0
-        found = False
         i = 0
-        if n_paragraphs <= 8:
-            n_pages = 1
         while (i < int(n_pages)) and ((8 * (i + 1) < n_paragraphs) if n_paragraphs > 8 else True):
             page = doc.new_page()
             page = doc[i]
-            # reshape the text to connect the arabic words together
-            # text_reshaped = arabic_reshaper.reshape(text)
             # initializing the text writer
             text_writer = fitz.TextWriter(page.rect)
             if i == 0:
@@ -349,11 +399,18 @@ class Aradocgen:
             i += 1
 
     def layout2(self, n_pages, doc, title, fonttype, font_size, content_blocks, n_paragraphs):
+        """ Returns layout number 1
+
+                Args:
+                    n_pages: (number) the number of pages
+                    doc: the doc that the file is writing on
+                    title: the title of the document
+                    font_size: pretty self-explanatory
+                    content_blocks: (list) returning the content of the wiki article
+                    n_paragraphs: (number) number of paragraphs in the file
+        """
         index_paragraph = index_header = index_image = 0
-        found = False
         i = 0
-        if n_paragraphs <= 11:
-            n_pages = 1
         while (i < int(n_pages)) and ((11 * (i + 1) < n_paragraphs) if n_paragraphs > 11 else True):
             page = doc.new_page()
             page = doc[i]
@@ -673,11 +730,18 @@ class Aradocgen:
             i += 1
 
     def layout3(self, n_pages, doc, title, fonttype, font_size, content_blocks, n_paragraphs):
+        """ Returns layout number 1
+
+                Args:
+                    n_pages: (number) the number of pages
+                    doc: the doc that the file is writing on
+                    title: the title of the document
+                    font_size: pretty self-explanatory
+                    content_blocks: (list) returning the content of the wiki article
+                    n_paragraphs: (number) number of paragraphs in the file
+        """
         index_paragraph = index_header = index_image = 0
-        found = False
         i = 0
-        if n_paragraphs <= 8:
-            n_pages = 1
         while (i < int(n_pages)) and ((8 * (i + 1) < n_paragraphs) if n_paragraphs > 8 else True):
             page = doc.new_page()
             page = doc[i]
@@ -949,16 +1013,21 @@ class Aradocgen:
             i += 1
 
     def layout4(self, n_pages, doc, title, fonttype, font_size, content_blocks, n_paragraphs):
+        """ Returns layout number 1
+
+                Args:
+                    n_pages: (number) the number of pages
+                    doc: the doc that the file is writing on
+                    title: the title of the document
+                    font_size: pretty self-explanatory
+                    content_blocks: (list) returning the content of the wiki article
+                    n_paragraphs: (number) number of paragraphs in the file
+        """
         index_paragraph = index_header = index_image = 0
-        found = False
         i = 0
-        if n_paragraphs <= 10:
-            n_pages = 1
         while (i < int(n_pages)) and ((10 * (i + 1) < n_paragraphs) if n_paragraphs > 10 else True):
             page = doc.new_page()
             page = doc[i]
-            # reshape the text to connect the arabic words together
-            # text_reshaped = arabic_reshaper.reshape(text)
             # initializing the text writer
             text_writer = fitz.TextWriter(page.rect)
             if i == 0:
@@ -1256,16 +1325,21 @@ class Aradocgen:
             i += 1
 
     def layout5(self, n_pages, doc, title, fonttype, font_size, content_blocks, n_paragraphs):
+        """ Returns layout number 1
+
+                        Args:
+                            n_pages: (number) the number of pages
+                            doc: the doc that the file is writing on
+                            title: the title of the document
+                            font_size: pretty self-explanatory
+                            content_blocks: (list) returning the content of the wiki article
+                            n_paragraphs: (number) number of paragraphs in the file
+        """
         index_paragraph = index_header = index_image = 0
-        found = False
         i = 0
-        if n_paragraphs <= 11:
-            n_pages = 1
         while (i < int(n_pages)) and ((11 * (i + 1) < n_paragraphs) if n_paragraphs > 11 else True):
             page = doc.new_page()
             page = doc[i]
-            # reshape the text to connect the arabic words together
-            # text_reshaped = arabic_reshaper.reshape(text)
             # initializing the text writer
             text_writer = fitz.TextWriter(page.rect)
             if i == 0:
