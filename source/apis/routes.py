@@ -9,18 +9,18 @@ from source.services.layouts import LayoutEnum
 router = APIRouter()
 
 
-@router.post("/generate-doc",
+@router.post("/arabic-PDF-generator",
              description="Generate a PDF document with the specified font type, number of pages, font size, and Wiki URL.")
 async def generate_document(
-        font_type: FontEnum = Query(..., description="Font type"),
-        n_pages: int = Query(10, description="Number of pages"),
-        font_size: int = Query(12, description="Font size (greater than 10 and less than 20)", gt=10, lt=20),
-        url: str = Query(..., description="URL of the Wikipedia article"),
-        layout_number: LayoutEnum = Query(..., description="Choose the layout you want"),
+        fontType: FontEnum = Query(..., description="fontType"),
+        numberOfPages: int = Query(10, description="numberOfPages"),
+        fontSize: int = Query(12, description="fontSize (greater than 10 and less than 20)", gt=10, lt=20),
+        url: str = Query(..., description="wikiURL"),
+        layoutNumber: LayoutEnum = Query(..., description="layoutNumber"),
 ):
     try:
-        selected_font = Font(fontfile=fonts.get(font_type.name))
-        selected_layout = layout_number.name
+        selectedFont = Font(fontfile=fonts.get(fontType.name))
+        selected_layout = layoutNumber.name
     except KeyError as e:
         return Response(
             content=str(e),
@@ -28,12 +28,12 @@ async def generate_document(
             status_code=400
         )
     try:
-        pdf_buffer = aradoc_gen.generate_pdf(selected_font, url, selected_layout, n_pages, font_size)
+        pdfBuffer = aradoc_gen.generate_pdf(selectedFont, url, selected_layout, numberOfPages, fontSize)
         return Response(
-            content=pdf_buffer.getvalue(),
+            content=pdfBuffer.getvalue(),
             media_type="application/pdf",
             headers={
-                "Content-Disposition": f"attachment; filename={font_type.name}_{font_size}_{n_pages}.pdf"},
+                "Content-Disposition": f"attachment; filename={fontType.name}_{fontSize}_{numberOfPages}.pdf"},
         )
     # fstring
     except FontException as e:
@@ -44,13 +44,13 @@ async def generate_document(
         )
 
 
-@router.get("/get-available", description="Get the available font types.")
+@router.get("/fonts-available", description="availableFonts")
 async def get_available_types():
     return aradoc_gen.get_available()
 
 
-@router.get("/extract-content", description="Extract content from a given URL.")
+@router.get("/content-extracted", description="Extract content from a given URL.")
 async def extract_content(
-        url: str = Query(..., description="URL")
+        url: str = Query(..., description="wikiURL")
 ):
     return aradoc_gen.extract_content_from_website(url)
