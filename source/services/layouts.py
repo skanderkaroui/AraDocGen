@@ -9,18 +9,22 @@ from enum import Enum
 align_param = 2
 
 
-def layout1(n_pages, doc, title, fonttype, font_size, content_blocks, n_paragraphs):
-    """"""
+def layout1(self, n_pages, doc, title, fonttype, font_size, content_blocks, n_paragraphs):
+    """ Returns layout number 1
+
+    Args:
+        n_pages: (number) the number of pages
+        doc: the doc that the file is writing on
+        title: the title of the document
+        font_size: pretty self-explanatory
+        content_blocks: (list) returning the content of the wiki article
+        n_paragraphs: (number) number of paragraphs in the file
+    """
     index_paragraph = index_header = index_image = 0
-    found = False
     i = 0
-    if n_paragraphs <= 8:
-        n_pages = 1
     while (i < int(n_pages)) and ((8 * (i + 1) < n_paragraphs) if n_paragraphs > 8 else True):
         page = doc.new_page()
         page = doc[i]
-        # reshape the text to connect the arabic words together
-        # text_reshaped = arabic_reshaper.reshape(text)
         # initializing the text writer
         text_writer = fitz.TextWriter(page.rect)
         if i == 0:
@@ -219,13 +223,19 @@ def layout1(n_pages, doc, title, fonttype, font_size, content_blocks, n_paragrap
         text_writer.write_text(page)
         i += 1
 
+def layout2(self, n_pages, doc, title, fonttype, font_size, content_blocks, n_paragraphs):
+    """ Returns layout number 1
 
-def layout2(n_pages, doc, title, fonttype, font_size, content_blocks, n_paragraphs):
+            Args:
+                n_pages: (number) the number of pages
+                doc: the doc that the file is writing on
+                title: the title of the document
+                font_size: pretty self-explanatory
+                content_blocks: (list) returning the content of the wiki article
+                n_paragraphs: (number) number of paragraphs in the file
+    """
     index_paragraph = index_header = index_image = 0
-    found = False
     i = 0
-    if n_paragraphs <= 11:
-        n_pages = 1
     while (i < int(n_pages)) and ((11 * (i + 1) < n_paragraphs) if n_paragraphs > 11 else True):
         page = doc.new_page()
         page = doc[i]
@@ -544,13 +554,19 @@ def layout2(n_pages, doc, title, fonttype, font_size, content_blocks, n_paragrap
         text_writer.write_text(page)
         i += 1
 
+def layout3(self, n_pages, doc, title, fonttype, font_size, content_blocks, n_paragraphs):
+    """ Returns layout number 1
 
-def layout3(n_pages, doc, title, fonttype, font_size, content_blocks, n_paragraphs):
+            Args:
+                n_pages: (number) the number of pages
+                doc: the doc that the file is writing on
+                title: the title of the document
+                font_size: pretty self-explanatory
+                content_blocks: (list) returning the content of the wiki article
+                n_paragraphs: (number) number of paragraphs in the file
+    """
     index_paragraph = index_header = index_image = 0
-    found = False
     i = 0
-    if n_paragraphs <= 8:
-        n_pages = 1
     while (i < int(n_pages)) and ((8 * (i + 1) < n_paragraphs) if n_paragraphs > 8 else True):
         page = doc.new_page()
         page = doc[i]
@@ -821,18 +837,22 @@ def layout3(n_pages, doc, title, fonttype, font_size, content_blocks, n_paragrap
         text_writer.write_text(page)
         i += 1
 
+def layout4(self, n_pages, doc, title, fonttype, font_size, content_blocks, n_paragraphs):
+    """ Returns layout number 1
 
-def layout4(n_pages, doc, title, fonttype, font_size, content_blocks, n_paragraphs):
+            Args:
+                n_pages: (number) the number of pages
+                doc: the doc that the file is writing on
+                title: the title of the document
+                font_size: pretty self-explanatory
+                content_blocks: (list) returning the content of the wiki article
+                n_paragraphs: (number) number of paragraphs in the file
+    """
     index_paragraph = index_header = index_image = 0
-    found = False
     i = 0
-    if n_paragraphs <= 10:
-        n_pages = 1
     while (i < int(n_pages)) and ((10 * (i + 1) < n_paragraphs) if n_paragraphs > 10 else True):
         page = doc.new_page()
         page = doc[i]
-        # reshape the text to connect the arabic words together
-        # text_reshaped = arabic_reshaper.reshape(text)
         # initializing the text writer
         text_writer = fitz.TextWriter(page.rect)
         if i == 0:
@@ -1129,18 +1149,22 @@ def layout4(n_pages, doc, title, fonttype, font_size, content_blocks, n_paragrap
         text_writer.write_text(page)
         i += 1
 
+def layout5(self, n_pages, doc, title, fonttype, font_size, content_blocks, n_paragraphs):
+    """ Returns layout number 1
 
-def layout5(n_pages, doc, title, fonttype, font_size, content_blocks, n_paragraphs):
+                    Args:
+                        n_pages: (number) the number of pages
+                        doc: the doc that the file is writing on
+                        title: the title of the document
+                        font_size: pretty self-explanatory
+                        content_blocks: (list) returning the content of the wiki article
+                        n_paragraphs: (number) number of paragraphs in the file
+    """
     index_paragraph = index_header = index_image = 0
-    found = False
     i = 0
-    if n_paragraphs <= 11:
-        n_pages = 1
     while (i < int(n_pages)) and ((11 * (i + 1) < n_paragraphs) if n_paragraphs > 11 else True):
         page = doc.new_page()
         page = doc[i]
-        # reshape the text to connect the arabic words together
-        # text_reshaped = arabic_reshaper.reshape(text)
         # initializing the text writer
         text_writer = fitz.TextWriter(page.rect)
         if i == 0:
@@ -1432,7 +1456,6 @@ def layout5(n_pages, doc, title, fonttype, font_size, content_blocks, n_paragrap
         text_writer.write_text(page)
         i += 1
 
-
 class LayoutEnum(Enum):
     layout1 = "layout1"
     layout2 = "layout2"
@@ -1441,10 +1464,18 @@ class LayoutEnum(Enum):
     layout5 = "layout5"
 
 
-layout = {
+layout_mapping = {
     LayoutEnum.layout1: layout1,
     LayoutEnum.layout2: layout2,
     LayoutEnum.layout3: layout3,
     LayoutEnum.layout4: layout4,
     LayoutEnum.layout5: layout5,
 }
+
+layout_paragraphs = {
+            "layout1": 8,
+            "layout2": 11,
+            "layout3": 11,
+            "layout4": 10,
+            "layout5": 10,
+        }

@@ -1,10 +1,11 @@
 from fastapi import APIRouter, Response, Query
 from fitz import Font
 
-from source.exceptions.font_exceptions import validate_font, FontException
+from source.exceptions.font_exceptions import FontException
 from source.models.Arabic_Fonts.fonts import fonts, FontEnum
-from source.services.doc_generation_service import Aradocgen
+from source.services.doc_generation_service import aradoc_gen
 from source.services.layouts import LayoutEnum
+
 router = APIRouter()
 
 
@@ -27,7 +28,7 @@ async def generate_document(
             status_code=400
         )
     try:
-        pdf_buffer = Aradocgen().generate_pdf(selected_font, url, selected_layout, n_pages, font_size)
+        pdf_buffer = aradoc_gen.generate_pdf(selected_font, url, selected_layout, n_pages, font_size)
         return Response(
             content=pdf_buffer.getvalue(),
             media_type="application/pdf",
@@ -45,11 +46,11 @@ async def generate_document(
 
 @router.get("/get-available", description="Get the available font types.")
 async def get_available_types():
-    return Aradocgen().get_available()
+    return aradoc_gen.get_available()
 
 
 @router.get("/extract-content", description="Extract content from a given URL.")
 async def extract_content(
         url: str = Query(..., description="URL")
 ):
-    return Aradocgen().extract_content_from_website(url)
+    return aradoc_gen.extract_content_from_website(url)
