@@ -9,7 +9,7 @@ from source.services.layouts import LayoutEnum
 router = APIRouter()
 
 
-@router.post("/arabic-PDF-generator",
+@router.post("/arabic-doc-generator",
              description="Generate a PDF document with the specified font type, number of pages, font size, and Wiki URL.")
 async def generate_document(
         fontType: FontEnum = Query(..., description="fontType"),
