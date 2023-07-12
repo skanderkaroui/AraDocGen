@@ -1,6 +1,5 @@
 from fastapi import APIRouter, Response, Query
 from fitz import Font
-
 from source.exceptions.font_exceptions import FontException
 from source.models.Arabic_Fonts.fonts import fonts, FontEnum
 from source.services.doc_generation_service import aradoc_gen
@@ -20,7 +19,7 @@ async def generate_document(
 ):
     try:
         selectedFont = Font(fontfile=fonts.get(fontType.name))
-        selected_layout = layoutNumber.name
+        selectedLayout = layoutNumber.name
     except KeyError as e:
         return Response(
             content=str(e),
@@ -28,14 +27,13 @@ async def generate_document(
             status_code=400
         )
     try:
-        pdfBuffer = aradoc_gen.generate_pdf(selectedFont, url, selected_layout, numberOfPages, fontSize)
+        pdfBuffer = aradoc_gen.generate_pdf(selectedFont, url, selectedLayout, numberOfPages, fontSize)
         return Response(
             content=pdfBuffer.getvalue(),
             media_type="application/pdf",
             headers={
-                "Content-Disposition": f"attachment; filename={fontType.name}_{fontSize}_{numberOfPages}.pdf"},
+                "Content-Disposition": f"attachment; filename={fontType.name}_{fontSize}_{numberOfPages}_{layoutNumber.name}.pdf"},
         )
-    # fstring
     except FontException as e:
         return Response(
             content=str(e),
@@ -54,3 +52,7 @@ async def extract_content(
         url: str = Query(..., description="wikiURL")
 ):
     return aradoc_gen.extract_content_from_website(url)
+
+@router.get("/wiki-articles-link", description="Extract all the wikipedia links")
+async def extract_link():
+    return aradoc_gen.extract_all_url()

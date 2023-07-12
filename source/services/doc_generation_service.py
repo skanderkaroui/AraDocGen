@@ -53,6 +53,30 @@ class Aradocgen:
         font_size_range = [10, 20]  # Example font size range
         return available_fonts, font_size_range
 
+    def extract_all_url(self):
+        base_url = "https://ar.wikipedia.org"
+        page_url = base_url + "/wiki/%D8%AE%D8%A7%D8%B5:%D9%83%D9%84_%D8%A7%D9%84%D8%B5%D9%81%D8%AD%D8%A7%D8%AA"
+        links = []
+        i = 0
+        while True and i < 10:
+            i += 1
+            response = requests.get(page_url)
+            soup = bs4.BeautifulSoup(response.content, 'html.parser')
+            link_page_redirect = soup.find_all('li', class_='allpagesredirect')
+
+            for link in link_page_redirect:
+                href = link.find('a')['href']  # Extract the href attribute from the <a> tag
+                full_url = base_url + href  # Append base URL to href
+                links.append(full_url)
+
+            next_page_link = soup.find('a', text=lambda t: t and 'الصفحة التالية' in t)
+            if next_page_link:
+                page_url = base_url + next_page_link['href']
+            else:
+                break
+
+        return links
+
     def extract_content_from_website(self, url):
         response = requests.get(url)
         soup = bs4.BeautifulSoup(response.content, 'html.parser')
