@@ -86,7 +86,8 @@ class Aradocgen:
             raise PageException(f"Layout '{layout_key_string}' not found in layout_headlines")
 
         layout_function = layout_mapping[layout_key]
-        layout_function(self, n_pages, doc, title, font_type, font_size, content_blocks, n_paragraphs, n_images, n_headlines)
+        layout_function(self, n_pages, doc, title, font_type, font_size, content_blocks, n_paragraphs, n_images,
+                        n_headlines)
 
         out = fitz.open()  # output PDF
         out_buffer = self.non_searchable(doc, out)
@@ -163,10 +164,10 @@ class Aradocgen:
             src = image_tag['src'] if image_tag is not None else ""
             caption_text = caption.get_text() if caption else ""
             headline_text = headline.get_text() if headline else ""
-            text = re.sub(r'[^\u0600-\u06FF\s]', '', text).strip()
-            cleaned_text = text.replace(';', '').replace(',', '').strip()
+            text = re.sub(r'[^\u0600-\u06FF\s]', '', text).strip()  # keep only arabic text
+            cleaned_text = text.replace(';', '').replace(',', '').strip()  # remove unwanted characters
 
-            if cleaned_text:
+            if cleaned_text and len(cleaned_text) >= 500:
                 content_blocks.append({
                     'type': 'paragraph',
                     'content': cleaned_text,
