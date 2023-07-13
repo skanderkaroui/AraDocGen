@@ -1,16 +1,17 @@
 import itertools
+import os
+import random
 import re
 from io import BytesIO
-import os
+
 import bs4
-from fitz import fitz, Font
 import requests
 from PIL import Image, ImageDraw, ImageFont
-import random
+from fitz import fitz, Font
 
 from source.exceptions.page_exceptions import PageException
 from source.models.Arabic_Fonts.fonts import fonts, FontEnum
-from source.services.layouts import layout_mapping, LayoutEnum, layout_paragraphs
+from source.services.layouts import layout_mapping, LayoutEnum, layout_paragraphs, layout_images, layout_headlines
 
 align_param = 2
 
@@ -57,18 +58,35 @@ class Aradocgen:
 
     def generate_pdf(self, font_type, url, layout_number, n_pages=10, font_size=12):
         doc = fitz.open()  # open the document
-        title, content_blocks, n_paragraphs = self.extract_content_from_website(url)
+        title, content_blocks, n_paragraphs, n_images, n_headlines = self.extract_content_from_website(url)
         layout_key = LayoutEnum(layout_number)
         layout_key_string = layout_key.name
+        # Verify the number of paragraphs
         if layout_key_string in layout_paragraphs:
-            try:
-                if n_paragraphs < layout_paragraphs[layout_key_string]:
-                    raise PageException("number of pages very low", 505)
-            except KeyError:
-                raise PageException("number of pages very low")
+            min_paragraphs = layout_paragraphs[layout_key_string]
+            if n_paragraphs < min_paragraphs:
+                raise PageException(f"Number of paragraphs is lower than the required minimum ({min_paragraphs})", 505)
+        else:
+            raise PageException(f"Layout '{layout_key_string}' not found in layout_paragraphs")
+
+        # Verify the number of images
+        if layout_key_string in layout_images:
+            min_images = layout_images[layout_key_string]
+            if n_images < min_images:
+                raise PageException(f"Number of images is lower than the required minimum ({min_images})", 505)
+        else:
+            raise PageException(f"Layout '{layout_key_string}' not found in layout_images")
+
+        # Verify the number of headlines
+        if layout_key_string in layout_headlines:
+            min_headlines = layout_headlines[layout_key_string]
+            if n_headlines < min_headlines:
+                raise PageException(f"Number of headlines is lower than the required minimum ({min_headlines})", 505)
+        else:
+            raise PageException(f"Layout '{layout_key_string}' not found in layout_headlines")
 
         layout_function = layout_mapping[layout_key]
-        layout_function(self, n_pages, doc, title, font_type, font_size, content_blocks, n_paragraphs)
+        layout_function(self, n_pages, doc, title, font_type, font_size, content_blocks, n_paragraphs, n_images, n_headlines)
 
         out = fitz.open()  # output PDF
         out_buffer = self.non_searchable(doc, out)
@@ -182,7 +200,7 @@ class Aradocgen:
                 counter += 1
                 counter_image += 1
 
-        return title_text, content_blocks, counter_text
+        return title_text, content_blocks, counter_text, counter_image, counter_headline
 
     def calculate_text_dimension(self, text, font_type=fonts.get("Decotype_Naskh"), font_size=12):
         font = ImageFont.truetype(font_type, 12)

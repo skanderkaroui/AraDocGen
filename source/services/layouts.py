@@ -9,7 +9,7 @@ from enum import Enum
 align_param = 2
 
 
-def layout1(self, n_pages, doc, title, fonttype, font_size, content_blocks, n_paragraphs):
+def layout1(self, n_pages, doc, title, fonttype, font_size, content_blocks, n_paragraphs, n_images, n_headlines):
     """ Returns layout number 1
 
     Args:
@@ -22,7 +22,9 @@ def layout1(self, n_pages, doc, title, fonttype, font_size, content_blocks, n_pa
     """
     index_paragraph = index_header = index_image = 0
     i = 0
-    while (i < int(n_pages)) and ((8 * (i + 1) < n_paragraphs) if n_paragraphs > 8 else True):
+    while (i < int(n_pages)) and ((8 * (i + 1) < n_paragraphs) if n_paragraphs > 8 else True) and (
+            (2 * (i + 1) < n_images) if n_images > 2 else True) and (
+    (3 * (i + 1) < n_headlines) if n_headlines > 3 else True):
         page = doc.new_page()
         page = doc[i]
         # initializing the text writer
@@ -223,7 +225,8 @@ def layout1(self, n_pages, doc, title, fonttype, font_size, content_blocks, n_pa
         text_writer.write_text(page)
         i += 1
 
-def layout2(self, n_pages, doc, title, fonttype, font_size, content_blocks, n_paragraphs):
+
+def layout2(self, n_pages, doc, title, fonttype, font_size, content_blocks, n_paragraphs, n_images, n_headlines):
     """ Returns layout number 1
 
             Args:
@@ -236,7 +239,9 @@ def layout2(self, n_pages, doc, title, fonttype, font_size, content_blocks, n_pa
     """
     index_paragraph = index_header = index_image = 0
     i = 0
-    while (i < int(n_pages)) and ((11 * (i + 1) < n_paragraphs) if n_paragraphs > 11 else True):
+    while (i < int(n_pages)) and ((11 * (i + 1) < n_paragraphs) if n_paragraphs > 11 else True) and (
+            (3 * (i + 1) < n_images) if n_images > 3 else True) and (
+            (7 * (i + 1) < n_headlines) if n_headlines > 7 else True):
         page = doc.new_page()
         page = doc[i]
         # reshape the text to connect the arabic words together
@@ -554,7 +559,8 @@ def layout2(self, n_pages, doc, title, fonttype, font_size, content_blocks, n_pa
         text_writer.write_text(page)
         i += 1
 
-def layout3(self, n_pages, doc, title, fonttype, font_size, content_blocks, n_paragraphs):
+
+def layout3(self, n_pages, doc, title, fonttype, font_size, content_blocks, n_paragraphs, n_images, n_headlines):
     """ Returns layout number 1
 
             Args:
@@ -567,7 +573,9 @@ def layout3(self, n_pages, doc, title, fonttype, font_size, content_blocks, n_pa
     """
     index_paragraph = index_header = index_image = 0
     i = 0
-    while (i < int(n_pages)) and ((8 * (i + 1) < n_paragraphs) if n_paragraphs > 8 else True):
+    while (i < int(n_pages)) and ((11 * (i + 1) < n_paragraphs) if n_paragraphs > 11 else True) and (
+            (3 * (i + 1) < n_images) if n_images > 3 else True) and (
+            (7 * (i + 1) < n_headlines) if n_headlines > 7 else True):
         page = doc.new_page()
         page = doc[i]
         # reshape the text to connect the arabic words together
@@ -837,7 +845,8 @@ def layout3(self, n_pages, doc, title, fonttype, font_size, content_blocks, n_pa
         text_writer.write_text(page)
         i += 1
 
-def layout4(self, n_pages, doc, title, fonttype, font_size, content_blocks, n_paragraphs):
+
+def layout4(self, n_pages, doc, title, fonttype, font_size, content_blocks, n_paragraphs, n_images, n_headlines):
     """ Returns layout number 1
 
             Args:
@@ -850,7 +859,9 @@ def layout4(self, n_pages, doc, title, fonttype, font_size, content_blocks, n_pa
     """
     index_paragraph = index_header = index_image = 0
     i = 0
-    while (i < int(n_pages)) and ((10 * (i + 1) < n_paragraphs) if n_paragraphs > 10 else True):
+    while (i < int(n_pages)) and ((11 * (i + 1) < n_paragraphs) if n_paragraphs > 11 else True) and (
+            (3 * (i + 1) < n_images) if n_images > 3 else True) and (
+            (7 * (i + 1) < n_headlines) if n_headlines > 7 else True):
         page = doc.new_page()
         page = doc[i]
         # initializing the text writer
@@ -1149,7 +1160,8 @@ def layout4(self, n_pages, doc, title, fonttype, font_size, content_blocks, n_pa
         text_writer.write_text(page)
         i += 1
 
-def layout5(self, n_pages, doc, title, fonttype, font_size, content_blocks, n_paragraphs):
+
+def layout5(self, n_pages, doc, title, fonttype, font_size, content_blocks, n_paragraphs, n_images, n_headlines):
     """ Returns layout number 1
 
                     Args:
@@ -1162,7 +1174,9 @@ def layout5(self, n_pages, doc, title, fonttype, font_size, content_blocks, n_pa
     """
     index_paragraph = index_header = index_image = 0
     i = 0
-    while (i < int(n_pages)) and ((11 * (i + 1) < n_paragraphs) if n_paragraphs > 11 else True):
+    while (i < int(n_pages)) and ((10 * (i + 1) < n_paragraphs) if n_paragraphs > 10 else True) and (
+            (2 * (i + 1) < n_images) if n_images > 2 else True) and (
+            (6 * (i + 1) < n_headlines) if n_headlines > 6 else True):
         page = doc.new_page()
         page = doc[i]
         # initializing the text writer
@@ -1456,6 +1470,7 @@ def layout5(self, n_pages, doc, title, fonttype, font_size, content_blocks, n_pa
         text_writer.write_text(page)
         i += 1
 
+
 class LayoutEnum(Enum):
     layout1 = "layout1"
     layout2 = "layout2"
@@ -1473,9 +1488,25 @@ layout_mapping = {
 }
 
 layout_paragraphs = {
-            "layout1": 8,
-            "layout2": 11,
-            "layout3": 11,
-            "layout4": 10,
-            "layout5": 10,
-        }
+    "layout1": 8,
+    "layout2": 11,
+    "layout3": 11,
+    "layout4": 10,
+    "layout5": 10,
+}
+
+layout_images = {
+    "layout1": 2,
+    "layout2": 3,
+    "layout3": 3,
+    "layout4": 3,
+    "layout5": 2,
+}
+
+layout_headlines = {
+    "layout1": 3,
+    "layout2": 7,
+    "layout3": 7,
+    "layout4": 7,
+    "layout5": 6,
+}
