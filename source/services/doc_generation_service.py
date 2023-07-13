@@ -1,20 +1,60 @@
 import itertools
 import re
 from io import BytesIO
-
+import os
 import bs4
-import fitz
+from fitz import fitz, Font
 import requests
 from PIL import Image, ImageDraw, ImageFont
+import random
 
 from source.exceptions.page_exceptions import PageException
-from source.models.Arabic_Fonts.fonts import fonts
+from source.models.Arabic_Fonts.fonts import fonts, FontEnum
 from source.services.layouts import layout_mapping, LayoutEnum, layout_paragraphs
 
 align_param = 2
 
 
 class Aradocgen:
+    def ultimate_arab_doc_generator(self, location: str):
+        random.seed(10)
+        urls = self.extract_all_url()
+
+        # Create the specified folder if it doesn't exist
+        os.makedirs(location, exist_ok=True)
+
+        for i, url in enumerate(urls):
+            randomFontType = random.choice(list(FontEnum))
+            random_layout_number = random.choice(list(LayoutEnum))
+            font_size = random.randint(10, 20)
+            selectedFont = Font(fontfile=fonts.get(randomFontType.name))
+            selectedLayout = random_layout_number.name
+
+            try:
+                out_buffer = self.generate_pdf(font_type=selectedFont, url=url, layout_number=selectedLayout,
+                                               n_pages=15, font_size=font_size)
+
+                # Extract the relevant information for the filename
+                font_type_name = randomFontType.name
+                font_size_val = font_size
+                layout_number_name = selectedLayout
+
+                # Construct the filename
+                file_name = f"{font_type_name}_{font_size_val}_{layout_number_name}.pdf"
+                file_path = os.path.join(location, file_name)
+
+                # Save the PDF file in the specified folder with the new filename
+                with open(file_path, "wb") as file:
+                    file.write(out_buffer.getvalue())
+
+                yield file_path  # Return the file path to the generator
+
+            except PageException as e:
+                print(f"Skipping file due to PageException: {e}")
+                continue
+
+        return  # No more PDFs to generate
+
     def generate_pdf(self, font_type, url, layout_number, n_pages=10, font_size=12):
         doc = fitz.open()  # open the document
         title, content_blocks, n_paragraphs = self.extract_content_from_website(url)
@@ -58,7 +98,7 @@ class Aradocgen:
         page_url = base_url + "/wiki/%D8%AE%D8%A7%D8%B5:%D9%83%D9%84_%D8%A7%D9%84%D8%B5%D9%81%D8%AD%D8%A7%D8%AA"
         links = []
         i = 0
-        while True and i < 10:
+        while True and i < 2:
             i += 1
             response = requests.get(page_url)
             soup = bs4.BeautifulSoup(response.content, 'html.parser')
@@ -93,7 +133,7 @@ class Aradocgen:
         counter = 1
         counter_image = counter_text = counter_headline = 1
         paragraph_tags = soup.find_all('p')
-        image_tags = soup.find_all('img', class_='thumbimage')
+        image_tags = soup.find_all('img', class_=['thumbimage', 'mw-file-element'])
         image_captions = soup.find_all('div', class_='thumbcaption')
         mw_headlines = soup.find_all('span', class_='mw-headline')
 
@@ -106,11 +146,12 @@ class Aradocgen:
             caption_text = caption.get_text() if caption else ""
             headline_text = headline.get_text() if headline else ""
             text = re.sub(r'[^\u0600-\u06FF\s]', '', text).strip()
+            cleaned_text = text.replace(';', '').replace(',', '').strip()
 
-            if text:
+            if cleaned_text:
                 content_blocks.append({
                     'type': 'paragraph',
-                    'content': text,
+                    'content': cleaned_text,
                     'number': counter,
                     'number_text': counter_text,
                     'id': 0,

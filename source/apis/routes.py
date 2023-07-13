@@ -7,6 +7,20 @@ from source.services.layouts import LayoutEnum
 
 router = APIRouter()
 
+@router.post("/ultimate-arabic-doc-generator", description="Generates the whole Wikipedia library into code")
+async def generate_mega_document(
+        location: str = Query(..., description="Folder location to save the PDF files")
+):
+    generator = aradoc_gen.ultimate_arab_doc_generator(location)
+
+    for file_path in generator:
+        # Process each file path here if needed
+        print("Generated PDF:", file_path)
+
+    return Response(
+        content="PDFs generated successfully.",
+        media_type="text/plain",
+    )
 
 @router.post("/arabic-doc-generator",
              description="Generate a PDF document with the specified font type, number of pages, font size, and Wiki URL.")
