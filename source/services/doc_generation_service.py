@@ -13,48 +13,83 @@ from source.exceptions.page_exceptions import PageException
 from source.models.Arabic_Fonts.fonts import fonts, FontEnum
 from source.services.layouts import layout_mapping, LayoutEnum, layout_paragraphs, layout_images, layout_headlines
 
-align_param = 2
+ALIGN_PARAM = 2
+NEXT_PAGE_LINK_FILE = "next_page_link.txt"
 
 
 class Aradocgen:
-    def ultimate_arab_doc_generator(self, location: str):
+    def ultimate_arab_doc_generator(self, location: str, base_url: str = None):
+        default_base_url = "https://ar.wikipedia.org"
+        page_url = base_url or default_base_url + "/wiki/%D8%AE%D8%A7%D8%B5:%D9%83%D9%84_%D8%A7%D9%84%D8%B5%D9%81%D8%AD%D8%A7%D8%AA"
+        links = []
         random.seed(10)
-        urls = self.extract_all_url()
+        os.makedirs(location, exist_ok=True)  # Create the specified folder if it doesn't exist
 
-        # Create the specified folder if it doesn't exist
-        os.makedirs(location, exist_ok=True)
+        next_page_link = self.read_next_page_link()
+        if next_page_link:
+            page_url = next_page_link
 
-        for i, url in enumerate(urls):
-            randomFontType = random.choice(list(FontEnum))
-            random_layout_number = random.choice(list(LayoutEnum))
-            font_size = random.randint(10, 20)
-            selectedFont = Font(fontfile=fonts.get(randomFontType.name))
-            selectedLayout = random_layout_number.name
+        while True:
+            response = requests.get(page_url)
+            soup = bs4.BeautifulSoup(response.content, 'html.parser')
+            link_page_redirect = soup.find_all('li', class_='allpagesredirect')
 
-            try:
-                out_buffer = self.generate_pdf(font_type=selectedFont, url=url, layout_number=selectedLayout,
-                                               n_pages=15, font_size=font_size)
+            for link in link_page_redirect:
+                href = link.find('a')['href']  # Extract the href attribute from the <a> tag
+                full_url = (base_url or default_base_url) + href  # Append base URL to href
+                links.append(full_url)
+                randomFontType = random.choice(list(FontEnum))
+                random_layout_number = random.choice(list(LayoutEnum))
+                font_size = random.randint(10, 20)
+                selectedFont = Font(fontfile=fonts.get(randomFontType.name))
+                selectedLayout = random_layout_number.name
 
-                # Extract the relevant information for the filename
-                font_type_name = randomFontType.name
-                font_size_val = font_size
-                layout_number_name = selectedLayout
+                try:
+                    out_buffer = self.generate_pdf(font_type=selectedFont, url=full_url, layout_number=selectedLayout,
+                                                   n_pages=15, font_size=font_size)
 
-                # Construct the filename
-                file_name = f"{font_type_name}_{font_size_val}_{layout_number_name}.pdf"
-                file_path = os.path.join(location, file_name)
+                    # Extract the relevant information for the filename
+                    font_type_name = randomFontType.name
+                    font_size_val = font_size
+                    layout_number_name = selectedLayout
 
-                # Save the PDF file in the specified folder with the new filename
-                with open(file_path, "wb") as file:
-                    file.write(out_buffer.getvalue())
+                    # Construct the filename
+                    file_name = f"{font_type_name}_{font_size_val}_{layout_number_name}.pdf"
+                    file_path = os.path.join(location, file_name)
 
-                yield file_path  # Return the file path to the generator
+                    # Save the PDF file in the specified folder with the new filename
+                    with open(file_path, "wb") as file:
+                        file.write(out_buffer.getvalue())
 
-            except PageException as e:
-                print(f"Skipping file due to PageException: {e}")
-                continue
+                    yield file_path  # Return the file path to the generator
 
-        return  # No more PDFs to generate
+                except PageException as e:
+                    print(f"Skipping file due to PageException: {e}")
+                    continue
+
+            next_page_link = soup.find('a', text=lambda t: t and 'الصفحة التالية' in t)
+            if next_page_link:
+                page_url = (base_url or default_base_url) + next_page_link['href']
+                self.save_next_page_link(page_url)
+            else:
+                break
+
+        self.clear_next_page_link()  # Clear the saved next_page_link if all pages have been processed
+
+    def read_next_page_link(self):
+        if os.path.exists(NEXT_PAGE_LINK_FILE):
+            with open(NEXT_PAGE_LINK_FILE, "r") as file:
+                next_page_link = file.read().strip()
+            return next_page_link
+        return None
+
+    def save_next_page_link(self, next_page_link):
+        with open(NEXT_PAGE_LINK_FILE, "w") as file:
+            file.write(next_page_link)
+
+    def clear_next_page_link(self):
+        if os.path.exists(NEXT_PAGE_LINK_FILE):
+            os.remove(NEXT_PAGE_LINK_FILE)
 
     def generate_pdf(self, font_type, url, layout_number, n_pages=10, font_size=12):
         doc = fitz.open()  # open the document
@@ -112,7 +147,7 @@ class Aradocgen:
         font_size_range = [10, 20]  # Example font size range
         return available_fonts, font_size_range
 
-    def extract_all_url(self):
+    def extract_all_url_file(self):
         base_url = "https://ar.wikipedia.org"
         page_url = base_url + "/wiki/%D8%AE%D8%A7%D8%B5:%D9%83%D9%84_%D8%A7%D9%84%D8%B5%D9%81%D8%AD%D8%A7%D8%AA"
         links = []
@@ -136,6 +171,34 @@ class Aradocgen:
 
         return links
 
+    def url_extractor_txt(self):
+        base_url = "https://ar.wikipedia.org"
+        page_url = base_url + "/wiki/%D8%AE%D8%A7%D8%B5:%D9%83%D9%84_%D8%A7%D9%84%D8%B5%D9%81%D8%AD%D8%A7%D8%AA"
+        links = []
+        i = 0
+        while True and i < 9:
+            i += 1
+            response = requests.get(page_url)
+            soup = bs4.BeautifulSoup(response.content, 'html.parser')
+            link_page_redirect = soup.find_all('li', class_='allpagesredirect')
+
+            for link in link_page_redirect:
+                href = link.find('a')['href']  # Extract the href attribute from the <a> tag
+                full_url = base_url + href  # Append base URL to href
+                links.append(full_url)
+
+            next_page_link = soup.find('a', text=lambda t: t and 'الصفحة التالية' in t)
+            if next_page_link:
+                page_url = base_url + next_page_link['href']
+            else:
+                break
+
+        # Save links to a text file
+        with open('links.txt', 'w') as file:
+            file.write('\n'.join(links))
+
+        return links
+
     def extract_content_from_website(self, url):
         response = requests.get(url)
         soup = bs4.BeautifulSoup(response.content, 'html.parser')
@@ -149,8 +212,7 @@ class Aradocgen:
 
         # Extract paragraphs, images, captions, and headlines
         content_blocks = []
-        counter = 1
-        counter_image = counter_text = counter_headline = 1
+        counter = counter_image = counter_text = counter_headline = 1
         paragraph_tags = soup.find_all('p')
         image_tags = soup.find_all('img', class_=['thumbimage', 'mw-file-element'])
         image_captions = soup.find_all('div', class_='thumbcaption')
@@ -165,9 +227,9 @@ class Aradocgen:
             caption_text = caption.get_text() if caption else ""
             headline_text = headline.get_text() if headline else ""
             text = re.sub(r'[^\u0600-\u06FF\s]', '', text).strip()  # keep only arabic text
-            cleaned_text = text.replace(';', '').replace(',', '').strip()  # remove unwanted characters
+            cleaned_text = re.sub(r'[,;]', '', text).strip()  # remove unwanted characters
 
-            if cleaned_text and len(cleaned_text) >= 500:
+            if cleaned_text and len(cleaned_text) >= 600:
                 content_blocks.append({
                     'type': 'paragraph',
                     'content': cleaned_text,
@@ -188,8 +250,7 @@ class Aradocgen:
                 })
                 counter += 1
                 counter_headline += 1
-
-            if src:
+            if src and not any(substring in src for substring in ["Twemoji", "Arrow", "Info"]):
                 content_blocks.append({
                     'type': 'image',
                     'src': src,
@@ -200,7 +261,9 @@ class Aradocgen:
                 })
                 counter += 1
                 counter_image += 1
-
+        counter_text -= 1
+        counter_image -= 1
+        counter_headline -= 1
         return title_text, content_blocks, counter_text, counter_image, counter_headline
 
     def calculate_text_dimension(self, text, font_type=fonts.get("Decotype_Naskh"), font_size=12):

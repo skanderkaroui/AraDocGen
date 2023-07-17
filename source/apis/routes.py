@@ -1,5 +1,6 @@
 from fastapi import APIRouter, Response, Query
 from fitz import Font
+
 from source.exceptions.font_exceptions import FontException
 from source.models.Arabic_Fonts.fonts import fonts, FontEnum
 from source.services.doc_generation_service import aradoc_gen
@@ -7,11 +8,16 @@ from source.services.layouts import LayoutEnum
 
 router = APIRouter()
 
+
 @router.post("/ultimate-arabic-doc-generator", description="Generates the whole Wikipedia library into code")
 async def generate_mega_document(
         location: str = Query(..., description="Folder location to save the PDF files")
 ):
-    generator = aradoc_gen.ultimate_arab_doc_generator(location)
+    # Check if next_page_link exists in the location
+    next_page_link = aradoc_gen.read_next_page_link()
+    base_url = next_page_link or None
+
+    generator = aradoc_gen.ultimate_arab_doc_generator(location, base_url)
 
     for file_path in generator:
         # Process each file path here if needed
@@ -21,6 +27,7 @@ async def generate_mega_document(
         content="PDFs generated successfully.",
         media_type="text/plain",
     )
+
 
 @router.post("/arabic-doc-generator",
              description="Generate a PDF document with the specified font type, number of pages, font size, and Wiki URL.")
@@ -56,6 +63,12 @@ async def generate_document(
         )
 
 
+@router.post("/url_extractor_txt")
+def run_extract_file_doc():
+    result = aradoc_gen.url_extractor_txt()
+    return {"message": "Function extract_file_doc called successfully.", "result": result}
+
+
 @router.get("/fonts-available", description="availableFonts")
 async def get_available_types():
     return aradoc_gen.get_available()
@@ -66,6 +79,7 @@ async def extract_content(
         url: str = Query(..., description="wikiURL")
 ):
     return aradoc_gen.extract_content_from_website(url)
+
 
 @router.get("/wiki-articles-link", description="Extract all the wikipedia links")
 async def extract_link():
