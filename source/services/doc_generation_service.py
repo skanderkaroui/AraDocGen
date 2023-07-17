@@ -210,13 +210,15 @@ class Aradocgen:
         else:
             title_text = ""
 
+        article = soup.find('main', id='content')
+
         # Extract paragraphs, images, captions, and headlines
         content_blocks = []
         counter = counter_image = counter_text = counter_headline = 1
-        paragraph_tags = soup.find_all('p')
-        image_tags = soup.find_all('img', class_=['thumbimage', 'mw-file-element'])
-        image_captions = soup.find_all('div', class_='thumbcaption')
-        mw_headlines = soup.find_all('span', class_='mw-headline')
+        paragraph_tags = article.find_all('p')
+        image_tags = article.find_all('img', class_=['thumbimage'])
+        image_captions = article.find_all('div', class_='thumbcaption')
+        mw_headlines = article.find_all('span', class_='mw-headline')
 
         for paragraph_tag, image_tag, caption, headline in itertools.zip_longest(paragraph_tags, image_tags,
                                                                                  image_captions,
@@ -250,7 +252,7 @@ class Aradocgen:
                 })
                 counter += 1
                 counter_headline += 1
-            if src and not any(substring in src for substring in ["Twemoji", "Arrow", "Info"]):
+            if src and not any(substring in src for substring in ["Twemoji", "arrow", "Info", 'star']):
                 content_blocks.append({
                     'type': 'image',
                     'src': src,
