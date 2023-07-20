@@ -25,7 +25,7 @@ class Aradocgen:
         random.seed(10)
         os.makedirs(location, exist_ok=True)  # Create the specified folder if it doesn't exist
 
-        next_page_link = self.read_next_page_link()
+        next_page_link = self.read_next_page_link(location)
         if next_page_link:
             page_url = next_page_link
 
@@ -68,28 +68,38 @@ class Aradocgen:
                     continue
 
             next_page_link = soup.find('a', text=lambda t: t and 'الصفحة التالية' in t)
+
             if next_page_link:
                 page_url = (base_url or default_base_url) + next_page_link['href']
-                self.save_next_page_link(page_url)
+                self.save_next_page_link(location, page_url)
             else:
                 break
 
         self.clear_next_page_link()  # Clear the saved next_page_link if all pages have been processed
 
-    def read_next_page_link(self):
-        if os.path.exists(NEXT_PAGE_LINK_FILE):
-            with open(NEXT_PAGE_LINK_FILE, "r") as file:
+    def read_next_page_link(self, location):
+        file_path = os.path.join(location, NEXT_PAGE_LINK_FILE)
+        if os.path.exists(file_path):
+            with open(file_path, "r") as file:
                 next_page_link = file.read().strip()
             return next_page_link
         return None
 
-    def save_next_page_link(self, next_page_link):
-        with open(NEXT_PAGE_LINK_FILE, "w") as file:
+    def save_next_page_link(self, location, next_page_link):
+        file_path = os.path.join(location, NEXT_PAGE_LINK_FILE)
+        with open(file_path, "w") as file:
             file.write(next_page_link)
 
-    def clear_next_page_link(self):
-        if os.path.exists(NEXT_PAGE_LINK_FILE):
-            os.remove(NEXT_PAGE_LINK_FILE)
+    def clear_next_page_link(self, location):
+        file_path = os.path.join(location, NEXT_PAGE_LINK_FILE)
+        if os.path.exists(file_path):
+            os.remove(file_path)
+
+    def ensure_next_page_link_file(self, location):
+        file_path = os.path.join(location, NEXT_PAGE_LINK_FILE)
+        if not os.path.exists(file_path):
+            with open(file_path, "w") as file:
+                file.write("")
 
     def generate_pdf(self, font_type, url, layout_number, n_pages=10, font_size=12):
         doc = fitz.open()  # open the document
@@ -132,17 +142,9 @@ class Aradocgen:
 
     def get_available(self):
         available_fonts = [
-            "Advertising Bold",
             "Af-Diwani",
-            "Andalus",
-            "Arabic transparent",
             "Arslan Wessam A",
-            "Decotype Thuluth",
-            "M-Unicode Sara",
             "Decotype Naskh",
-            "Simplified Arabic",
-            "Tahoma",
-            "Traditional Arabic",
         ]
         font_size_range = [10, 20]  # Example font size range
         return available_fonts, font_size_range
