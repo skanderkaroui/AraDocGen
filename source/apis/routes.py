@@ -14,7 +14,7 @@ router = APIRouter()
 #         location: str = Query(..., description="Folder location to save the PDF files")
 # ):
 #     # Check if next_page_link exists in the location
-#     next_page_link = aradoc_gen.read_next_page_link()
+#     next_page_link = aradoc_gen.read_next_page_link(location)
 #     base_url = next_page_link or None
 #
 #     generator = aradoc_gen.ultimate_arab_doc_generator(location, base_url)
