@@ -147,7 +147,7 @@ class Aradocgen:
             "Decotype Naskh",
         ]
         font_size_range = [10, 20]  # Example font size range
-        return available_fonts, font_size_range
+        return FontEnum, LayoutEnum, fonts
 
     def extract_all_url_file(self):
         base_url = "https://ar.wikipedia.org"
@@ -218,7 +218,7 @@ class Aradocgen:
         content_blocks = []
         counter = counter_image = counter_text = counter_headline = 1
         paragraph_tags = article.find_all('p')
-        image_tags = article.find_all('img', class_=['thumbimage'])
+        image_tags = article.find_all('img', class_=['thumbimage','mw-file-element'])
         image_captions = article.find_all('div', class_='thumbcaption')
         mw_headlines = article.find_all('span', class_='mw-headline')
 
@@ -254,7 +254,7 @@ class Aradocgen:
                 })
                 counter += 1
                 counter_headline += 1
-            if src and not any(substring in src for substring in ["Twemoji", "arrow", "Info", 'star']):
+            if src and not any(substring in src for substring in ["Twemoji", "arrow", "Info", 'star','Arrow']):
                 content_blocks.append({
                     'type': 'image',
                     'src': src,
