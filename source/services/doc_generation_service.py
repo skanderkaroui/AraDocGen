@@ -3,7 +3,7 @@ import os
 import random
 import re
 from io import BytesIO
-
+from tqdm import tqdm
 import bs4
 import requests
 from PIL import Image, ImageDraw, ImageFont
@@ -18,64 +18,64 @@ NEXT_PAGE_LINK_FILE = "next_page_link.txt"
 
 
 class Aradocgen:
-    def ultimate_arab_doc_generator(self, location: str, base_url: str = None):
-        default_base_url = "https://ar.wikipedia.org"
-        page_url = base_url or default_base_url + "/wiki/%D8%AE%D8%A7%D8%B5:%D9%83%D9%84_%D8%A7%D9%84%D8%B5%D9%81%D8%AD%D8%A7%D8%AA"
-        links = []
-        random.seed(10)
-        os.makedirs(location, exist_ok=True)  # Create the specified folder if it doesn't exist
-
-        next_page_link = self.read_next_page_link(location)
-        if next_page_link:
-            page_url = next_page_link
-
-        while True:
-            response = requests.get(page_url)
-            soup = bs4.BeautifulSoup(response.content, 'html.parser')
-            link_page_redirect = soup.find_all('li', class_='allpagesredirect')
-
-            for link in link_page_redirect:
-                href = link.find('a')['href']  # Extract the href attribute from the <a> tag
-                full_url = (base_url or default_base_url) + href  # Append base URL to href
-                links.append(full_url)
-                randomFontType = random.choice(list(FontEnum))
-                random_layout_number = random.choice(list(LayoutEnum))
-                font_size = random.randint(10, 20)
-                selectedFont = Font(fontfile=fonts.get(randomFontType.name))
-                selectedLayout = random_layout_number.name
-
-                try:
-                    out_buffer = self.generate_pdf(font_type=selectedFont, url=full_url, layout_number=selectedLayout,
-                                                   n_pages=15, font_size=font_size)
-
-                    # Extract the relevant information for the filename
-                    font_type_name = randomFontType.name
-                    font_size_val = font_size
-                    layout_number_name = selectedLayout
-
-                    # Construct the filename
-                    file_name = f"{font_type_name}_{font_size_val}_{layout_number_name}.pdf"
-                    file_path = os.path.join(location, file_name)
-
-                    # Save the PDF file in the specified folder with the new filename
-                    with open(file_path, "wb") as file:
-                        file.write(out_buffer.getvalue())
-
-                    yield file_path  # Return the file path to the generator
-
-                except PageException as e:
-                    print(f"Skipping file due to PageException: {e}")
-                    continue
-
-            next_page_link = soup.find('a', text=lambda t: t and 'الصفحة التالية' in t)
-
-            if next_page_link:
-                page_url = (base_url or default_base_url) + next_page_link['href']
-                self.save_next_page_link(location, page_url)
-            else:
-                break
-
-        self.clear_next_page_link()  # Clear the saved next_page_link if all pages have been processed
+    # def ultimate_arab_doc_generator(self, location: str, base_url: str = None):
+    #     default_base_url = "https://ar.wikipedia.org"
+    #     page_url = base_url or default_base_url + "/wiki/%D8%AE%D8%A7%D8%B5:%D9%83%D9%84_%D8%A7%D9%84%D8%B5%D9%81%D8%AD%D8%A7%D8%AA"
+    #     links = []
+    #     random.seed(10)
+    #     os.makedirs(location, exist_ok=True)  # Create the specified folder if it doesn't exist
+    #
+    #     next_page_link = self.read_next_page_link(location)
+    #     if next_page_link:
+    #         page_url = next_page_link
+    #
+    #     while True:
+    #         response = requests.get(page_url)
+    #         soup = bs4.BeautifulSoup(response.content, 'html.parser')
+    #         link_page_redirect = soup.find_all('li', class_='allpagesredirect')
+    #
+    #         for link in link_page_redirect:
+    #             href = link.find('a')['href']  # Extract the href attribute from the <a> tag
+    #             full_url = (base_url or default_base_url) + href  # Append base URL to href
+    #             links.append(full_url)
+    #             randomFontType = random.choice(list(FontEnum))
+    #             random_layout_number = random.choice(list(LayoutEnum))
+    #             font_size = random.randint(10, 20)
+    #             selectedFont = Font(fontfile=fonts.get(randomFontType.name))
+    #             selectedLayout = random_layout_number.name
+    #
+    #             try:
+    #                 out_buffer = self.generate_pdf(font_type=selectedFont, url=full_url, layout_number=selectedLayout,
+    #                                                n_pages=15, font_size=font_size)
+    #
+    #                 # Extract the relevant information for the filename
+    #                 font_type_name = randomFontType.name
+    #                 font_size_val = font_size
+    #                 layout_number_name = selectedLayout
+    #
+    #                 # Construct the filename
+    #                 file_name = f"{font_type_name}_{font_size_val}_{layout_number_name}.pdf"
+    #                 file_path = os.path.join(location, file_name)
+    #
+    #                 # Save the PDF file in the specified folder with the new filename
+    #                 with open(file_path, "wb") as file:
+    #                     file.write(out_buffer.getvalue())
+    #
+    #                 yield file_path  # Return the file path to the generator
+    #
+    #             except PageException as e:
+    #                 print(f"Skipping file due to PageException: {e}")
+    #                 continue
+    #
+    #         next_page_link = soup.find('a', text=lambda t: t and 'الصفحة التالية' in t)
+    #
+    #         if next_page_link:
+    #             page_url = (base_url or default_base_url) + next_page_link['href']
+    #             self.save_next_page_link(location, page_url)
+    #         else:
+    #             break
+    #
+    #     self.clear_next_page_link()  # Clear the saved next_page_link if all pages have been processed
 
     def read_next_page_link(self, location):
         file_path = os.path.join(location, NEXT_PAGE_LINK_FILE)
@@ -147,59 +147,61 @@ class Aradocgen:
             "Decotype Naskh",
         ]
         font_size_range = [10, 20]  # Example font size range
-        return FontEnum, LayoutEnum, fonts
+        return available_fonts, font_size_range
 
-    def extract_all_url_file(self):
-        base_url = "https://ar.wikipedia.org"
-        page_url = base_url + "/wiki/%D8%AE%D8%A7%D8%B5:%D9%83%D9%84_%D8%A7%D9%84%D8%B5%D9%81%D8%AD%D8%A7%D8%AA"
-        links = []
-        i = 0
-        while True and i < 2:
-            i += 1
-            response = requests.get(page_url)
-            soup = bs4.BeautifulSoup(response.content, 'html.parser')
-            link_page_redirect = soup.find_all('li', class_='allpagesredirect')
-
-            for link in link_page_redirect:
-                href = link.find('a')['href']  # Extract the href attribute from the <a> tag
-                full_url = base_url + href  # Append base URL to href
-                links.append(full_url)
-
-            next_page_link = soup.find('a', text=lambda t: t and 'الصفحة التالية' in t)
-            if next_page_link:
-                page_url = base_url + next_page_link['href']
-            else:
-                break
-
-        return links
+    # def extract_all_url_file(self):
+    #     base_url = "https://ar.wikipedia.org"
+    #     page_url = base_url + "/wiki/%D8%AE%D8%A7%D8%B5:%D9%83%D9%84_%D8%A7%D9%84%D8%B5%D9%81%D8%AD%D8%A7%D8%AA"
+    #     links = []
+    #     while True:
+    #         response = requests.get(page_url)
+    #         soup = bs4.BeautifulSoup(response.content, 'html.parser')
+    #         link_page_redirect = soup.find_all('li', class_='allpagesredirect')
+    #
+    #         for link in link_page_redirect:
+    #             href = link.find('a')['href']  # Extract the href attribute from the <a> tag
+    #             full_url = base_url + href  # Append base URL to href
+    #             links.append(full_url)
+    #
+    #         next_page_link = soup.find('a', text=lambda t: t and 'الصفحة التالية' in t)
+    #         if next_page_link:
+    #             page_url = base_url + next_page_link['href']
+    #         else:
+    #             break
+    #
+    #     return links
 
     def url_extractor_txt(self):
         base_url = "https://ar.wikipedia.org"
         page_url = base_url + "/wiki/%D8%AE%D8%A7%D8%B5:%D9%83%D9%84_%D8%A7%D9%84%D8%B5%D9%81%D8%AD%D8%A7%D8%AA"
         links = []
         i = 0
-        while True and i < 9:
-            i += 1
+        while True:
             response = requests.get(page_url)
             soup = bs4.BeautifulSoup(response.content, 'html.parser')
-            link_page_redirect = soup.find_all('li', class_='allpagesredirect')
-
-            for link in link_page_redirect:
+            page_links = soup.find_all('div', class_='mw-allpages-body')
+            for link in tqdm(page_links):
                 href = link.find('a')['href']  # Extract the href attribute from the <a> tag
                 full_url = base_url + href  # Append base URL to href
                 links.append(full_url)
-
-            next_page_link = soup.find('a', text=lambda t: t and 'الصفحة التالية' in t)
+            # Look for the next_page_link inside each div element of class 'mw-allpages-nav'
+            next_page_link = None
+            for div in soup.find_all('div', class_='mw-allpages-nav'):
+                next_page_link = div.find('a', text=lambda t: t and 'الصفحة التالية' in t)
+                if next_page_link:
+                    break
             if next_page_link:
-                page_url = base_url + next_page_link['href']
-            else:
-                break
+                href = next_page_link['href']  # Extract the href attribute from the <a> tag
+                page_url = base_url + href  # Update the page_url to the next page*
 
-        # Save links to a text file
-        with open('links.txt', 'w') as file:
-            file.write('\n'.join(links))
+            with open('links.txt', 'a') as file:
+                file.write('\n'.join(links))
 
-        return links
+            with open('page_url.txt', 'w') as file:
+                file.write(page_url)  # Write the new page_url to the file, without joining it with newline
+
+            if not next_page_link:
+                break  # If no next page link is found, exit the loop
 
     def extract_content_from_website(self, url):
         response = requests.get(url)
@@ -218,7 +220,7 @@ class Aradocgen:
         content_blocks = []
         counter = counter_image = counter_text = counter_headline = 1
         paragraph_tags = article.find_all('p')
-        image_tags = article.find_all('img', class_=['thumbimage','mw-file-element'])
+        image_tags = article.find_all('img', class_=['thumbimage', 'mw-file-element'])
         image_captions = article.find_all('div', class_='thumbcaption')
         mw_headlines = article.find_all('span', class_='mw-headline')
 
@@ -254,7 +256,7 @@ class Aradocgen:
                 })
                 counter += 1
                 counter_headline += 1
-            if src and not any(substring in src for substring in ["Twemoji", "arrow", "Info", 'star','Arrow']):
+            if src and not any(substring in src for substring in ["Twemoji", "arrow", "Info", 'star', 'Arrow']):
                 content_blocks.append({
                     'type': 'image',
                     'src': src,
@@ -270,14 +272,14 @@ class Aradocgen:
         counter_headline -= 1
         return title_text, content_blocks, counter_text, counter_image, counter_headline
 
-    def calculate_text_dimension(self, text, font_type=fonts.get("Decotype_Naskh"), font_size=12):
-        font = ImageFont.truetype(font_type, 12)
-        image = Image.new("RGB", (1, 1), "white")  # Create a small blank image
-        draw = ImageDraw.Draw(image)
-        bbox = draw.textbbox((0, 0), text, font=font)
-        width = bbox[2] - bbox[0]
-        height = bbox[3] - bbox[1]
-        return width, height
+    # def calculate_text_dimension(self, text, font_type=fonts.get("Decotype_Naskh"), font_size=12):
+    #     font = ImageFont.truetype(font_type, 12)
+    #     image = Image.new("RGB", (1, 1), "white")  # Create a small blank image
+    #     draw = ImageDraw.Draw(image)
+    #     bbox = draw.textbbox((0, 0), text, font=font)
+    #     width = bbox[2] - bbox[0]
+    #     height = bbox[3] - bbox[1]
+    #     return width, height
 
     def non_searchable(self, doc, out):
         for page in doc:
